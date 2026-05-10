@@ -1,0 +1,97 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and role information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["farmer", "consumer", "analyst", "admin"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "CropAnalysis": {
+      "title": "Crop Analysis",
+      "description": "AI-powered crop disease detection result",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "disease": { "type": "string" },
+        "severity": { "type": "string" },
+        "treatment": { "type": "string" },
+        "confidence": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "disease", "severity", "createdAt"]
+    },
+    "IrrigationLog": {
+      "title": "Irrigation Log",
+      "description": "Smart irrigation recommendations and usage",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "cropType": { "type": "string" },
+        "waterAmount": { "type": "number" },
+        "timing": { "type": "string" },
+        "humidity": { "type": "number" },
+        "temperature": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "cropType", "waterAmount", "createdAt"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Marketplace product listing",
+      "type": "object",
+      "properties": {
+        "farmerId": { "type": "string" },
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "unit": { "type": "string" },
+        "description": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "stock": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["farmerId", "name", "price", "stock"]
+    },
+    "Alert": {
+      "title": "System Alert",
+      "description": "Real-time system notification",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["critical", "warning", "info"] },
+        "title": { "type": "string" },
+        "msg": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["type", "title", "msg", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/crops/{cropId}": {
+      "schema": "CropAnalysis",
+      "description": "Crop analysis records"
+    },
+    "/irrigation_logs/{logId}": {
+      "schema": "IrrigationLog",
+      "description": "Irrigation recommendations"
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Marketplace products"
+    },
+    "/alerts/{alertId}": {
+      "schema": "Alert",
+      "description": "Global system alerts"
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "AgroShield AI",
+  "description": "A futuristic environmental intelligence and smart agriculture platform providing real-time monitoring, AI crop disease detection, and sustainable farming insights.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "AI-Powered Crop Analysis",
+    "Environmental Risk Monitoring",
+    "Smart Irrigation Optimization",
+    "Interactive Climate Heatmaps"
+  ]
+}
