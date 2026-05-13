@@ -58,7 +58,7 @@ export default function Navbar() {
               <Leaf className="text-white w-6 h-6" />
             </div>
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
-              AgroShield AI
+              {t('nav.appName')}
             </span>
           </Link>
 

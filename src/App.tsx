@@ -12,6 +12,7 @@ import Marketplace from '@/pages/Marketplace';
 import AdminPanel from '@/pages/AdminPanel';
 import Profile from '@/pages/Profile';
 import Chatbot from '@/components/Chatbot';
+import { FeedbackDialog } from '@/components/FeedbackDialog';
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
         </main>
         <Footer />
         <Chatbot />
+        <FeedbackDialog />
         <Toaster position="top-right" theme="dark" />
       </div>
     </Router>

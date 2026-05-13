@@ -1,13 +1,13 @@
 import * as React from 'react';
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Upload, Leaf, ShieldAlert, CheckCircle2, Search, History, Trash2, ArrowRight, Camera, X } from 'lucide-react';
+import { Upload, Leaf, ShieldAlert, CheckCircle2, Search, History, Trash2, ArrowRight, Camera, X, RefreshCw, Info, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { analyzeCropDisease } from '@/services/ai';
-import { auth, db } from '@/lib/firebase';
+import { auth, db, handleFirestoreError, OperationType } from '@/lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { toast } from 'sonner';
 
@@ -106,12 +106,16 @@ export default function CropAnalysis() {
       setResult(analysis);
       
       if (auth.currentUser) {
-        await addDoc(collection(db, 'crops'), {
-          userId: auth.currentUser.uid,
-          imageUrl: image,
-          ...analysis,
-          createdAt: new Date().toISOString()
-        });
+        try {
+          await addDoc(collection(db, 'crops'), {
+            userId: auth.currentUser.uid,
+            imageUrl: image,
+            ...analysis,
+            createdAt: new Date().toISOString()
+          });
+        } catch (error) {
+          handleFirestoreError(error, OperationType.WRITE, 'crops');
+        }
       }
       toast.success("Analysis complete!");
     } catch (error) {
@@ -239,33 +243,51 @@ export default function CropAnalysis() {
                     </Badge>
                   </div>
                   <CardContent className="p-8 space-y-8">
-                    <div>
-                      <label className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-2 block">Detected Pathogen</label>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[10px] font-bold uppercase tracking-widest">{result.pathogenType}</Badge>
+                      </div>
                       <div className="text-3xl font-black text-white leading-tight">{result.disease}</div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                        <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
-                          <ShieldAlert className="text-emerald-500 w-5 h-5 mb-2" />
-                          <div className="text-xs text-zinc-500 uppercase font-semibold">Stability</div>
-                          <div className="text-white font-bold">Resilient</div>
+                          <label className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-2 block">Observed Symptoms</label>
+                          <p className="text-zinc-300 text-xs leading-relaxed">{result.symptoms}</p>
                        </div>
                        <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
-                          <History className="text-blue-400 w-5 h-5 mb-2" />
-                          <div className="text-xs text-zinc-500 uppercase font-semibold">Spread</div>
-                          <div className="text-white font-bold">Localized</div>
+                          <label className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-2 block">Probable Causes</label>
+                          <p className="text-zinc-300 text-xs leading-relaxed">{result.causes}</p>
                        </div>
                     </div>
 
-                    <div>
-                      <label className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-4 block">Recommended Treatment Plan</label>
-                      <div className="bg-white/5 rounded-3xl p-6 border border-white/5 text-zinc-300 text-sm leading-relaxed">
-                        {result.treatment}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 text-white">
+                        <AlertTriangle className="w-4 h-4 text-orange-500" />
+                        <h4 className="text-sm font-bold uppercase tracking-widest">Treatment Protocol</h4>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <div className="bg-emerald-500/5 rounded-2xl p-5 border border-emerald-500/10 transition-all hover:bg-emerald-500/10">
+                          <div className="flex items-center gap-2 mb-2">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Immediate Action</span>
+                          </div>
+                          <p className="text-zinc-300 text-sm leading-relaxed">{result.solution.immediate}</p>
+                        </div>
+
+                        <div className="bg-blue-500/5 rounded-2xl p-5 border border-blue-500/10 transition-all hover:bg-blue-500/10">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Info className="w-3 h-3 text-blue-400" />
+                            <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Long-term Prevention</span>
+                          </div>
+                          <p className="text-zinc-300 text-sm leading-relaxed">{result.solution.longTerm}</p>
+                        </div>
                       </div>
                     </div>
 
                     <Button className="w-full bg-white text-black hover:bg-zinc-200 rounded-full py-6 font-bold group">
-                      Order Treatment Supplies
+                      Order Recovery Kit
                       <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </CardContent>
@@ -337,24 +359,3 @@ export default function CropAnalysis() {
   );
 }
 
-function RefreshCw(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-      <path d="M21 3v5h-5" />
-      <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-      <path d="M3 21v-5h5" />
-    </svg>
-  )
-}

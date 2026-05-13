@@ -24,11 +24,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
-import { db } from '@/lib/firebase';
+import { db, auth, handleFirestoreError, OperationType } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { toast } from 'sonner';
+import { useLanguage } from '@/lib/languageStore';
 
 export default function AdminPanel() {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('users');
   const [broadcast, setBroadcast] = useState({ title: '', msg: '', type: 'info' });
   const [sending, setSending] = useState(false);
@@ -47,7 +49,7 @@ export default function AdminPanel() {
       toast.success("System-wide broadcast sent!");
       setBroadcast({ title: '', msg: '', type: 'info' });
     } catch (err: any) {
-      toast.error("Broadcast failed: " + err.message);
+      handleFirestoreError(err, OperationType.WRITE, 'alerts');
     } finally {
       setSending(false);
     }
@@ -60,7 +62,7 @@ export default function AdminPanel() {
           <div>
             <h1 className="text-3xl font-bold text-white flex items-center gap-3">
               <Shield className="text-emerald-500 w-8 h-8" />
-              Command Center
+              {t('admin.title')}
             </h1>
             <p className="text-zinc-500 text-sm">System administration and planetary oversight.</p>
           </div>
@@ -83,13 +85,13 @@ export default function AdminPanel() {
                <div className="space-y-2">
                  <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Alert Type</label>
                  <div className="flex gap-2">
-                   {['info', 'warning', 'critical'].map(t => (
+                   {['info', 'warning', 'critical'].map(tType => (
                      <button
-                        key={t}
-                        onClick={() => setBroadcast({ ...broadcast, type: t })}
-                        className={`flex-1 py-3 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all ${broadcast.type === t ? 'bg-white text-black border-white' : 'bg-black/40 text-zinc-500 border-white/10 hover:border-white/20'}`}
+                        key={tType}
+                        onClick={() => setBroadcast({ ...broadcast, type: tType })}
+                        className={`flex-1 py-3 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all ${broadcast.type === tType ? 'bg-white text-black border-white' : 'bg-black/40 text-zinc-500 border-white/10 hover:border-white/20'}`}
                      >
-                       {t}
+                       {tType}
                      </button>
                    ))}
                  </div>
@@ -109,7 +111,7 @@ export default function AdminPanel() {
                <Textarea 
                  value={broadcast.msg}
                  onChange={e => setBroadcast({ ...broadcast, msg: e.target.value })}
-                 placeholder="Provide detailed instructions for the broadcasted alert..." 
+                 placeholder={t('admin.placeholder')} 
                  className="bg-black/40 border-white/10 text-white min-h-[100px] rounded-xl"
                />
             </div>

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { useLanguage } from '@/lib/languageStore';
 
 const products = [
   { id: 1, name: 'Premium Organic Wheat', category: 'Produce', price: 42, unit: 'Bushel', stock: 120, farmer: 'Green Valley Farms', image: 'https://picsum.photos/seed/wheat/400/300' },
@@ -28,6 +29,7 @@ const products = [
 ];
 
 export default function Marketplace() {
+  const { t } = useLanguage();
   const [category, setCategory] = useState('All');
   const [search, setSearch] = useState('');
 
@@ -44,7 +46,7 @@ export default function Marketplace() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
            <Card className="bg-zinc-900 border-white/5 p-6 border-b-2 border-b-emerald-500/50">
              <div className="flex justify-between items-center mb-4">
-               <div className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Global Commodity Index</div>
+               <div className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">{t('market.stats1Label')}</div>
                <TrendingUp className="w-4 h-4 text-emerald-500" />
              </div>
              <div className="text-4xl font-black text-white">$1,424.20</div>
@@ -52,7 +54,7 @@ export default function Marketplace() {
            </Card>
            <Card className="bg-zinc-900 border-white/5 p-6 border-b-2 border-b-blue-500/50">
              <div className="flex justify-between items-center mb-4">
-               <div className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Verified Farmers</div>
+               <div className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">{t('market.stats2Label')}</div>
                <ShieldCheck className="w-4 h-4 text-blue-500" />
              </div>
              <div className="text-4xl font-black text-white">4.2K+</div>
@@ -60,7 +62,7 @@ export default function Marketplace() {
            </Card>
            <Card className="bg-zinc-900 border-white/5 p-6 border-b-2 border-b-orange-500/50">
              <div className="flex justify-between items-center mb-4">
-               <div className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Transaction Volume</div>
+               <div className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">{t('market.stats3Label')}</div>
                <ShoppingCart className="w-4 h-4 text-orange-500" />
              </div>
              <div className="text-4xl font-black text-white">$12.5M</div>
@@ -77,14 +79,14 @@ export default function Marketplace() {
                   onClick={() => setCategory(c)}
                   className={`px-6 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${category === c ? 'bg-white text-black' : 'bg-white/5 text-zinc-500 hover:text-white'}`}
                 >
-                  {c}
+                  {t(`market.cat.${c}`)}
                 </button>
               ))}
            </div>
            <div className="relative w-full md:w-96">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
               <Input 
-                 placeholder="Search planetary inventory..." 
+                 placeholder={t('market.searchPlaceholder')} 
                  className="bg-black/40 border-white/10 pl-12 h-12 rounded-2xl text-white focus:border-emerald-500/50" 
                  value={search}
                  onChange={(e) => setSearch(e.target.value)}
@@ -111,7 +113,7 @@ export default function Marketplace() {
                        referrerPolicy="no-referrer"
                      />
                      <div className="absolute top-4 left-4">
-                        <Badge className="bg-emerald-500/80 backdrop-blur-md border-none text-white font-bold">Verified</Badge>
+                        <Badge className="bg-emerald-500/80 backdrop-blur-md border-none text-white font-bold">{t('common.verified')}</Badge>
                      </div>
                      <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent"></div>
                   </div>
@@ -133,21 +135,21 @@ export default function Marketplace() {
                         <div className="grid grid-cols-2 gap-4">
                            <div className="p-3 bg-white/5 rounded-xl flex items-center gap-3">
                               <Leaf className="w-4 h-4 text-emerald-500" />
-                              <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Organic</div>
+                              <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{t('common.organic')}</div>
                            </div>
                            <div className="p-3 bg-white/5 rounded-xl flex items-center gap-3">
                               <Droplets className="w-4 h-4 text-blue-500" />
-                              <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Sustainable</div>
+                              <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{t('common.sustainable')}</div>
                            </div>
                         </div>
                      </div>
 
                      <div className="pt-6 border-t border-white/5 flex gap-3">
                         <Button className="flex-1 bg-white text-black hover:bg-zinc-200 rounded-full font-bold h-12">
-                          Add to Sphere
+                          {t('market.btnAddToCart')}
                         </Button>
                         <Button variant="outline" className="bg-transparent border-white/10 text-white rounded-full h-12 px-8 group">
-                          Details
+                          {t('market.btnDetails')}
                           <ArrowUpRight className="ml-2 w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                         </Button>
                      </div>
@@ -162,11 +164,11 @@ export default function Marketplace() {
            <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,#ffffff20_0%,transparent_60%)]"></div>
            <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
               <div className="max-w-xl text-center md:text-left">
-                 <h2 className="text-4xl font-black text-black mb-4 tracking-tighter">Large scale logistics required?</h2>
-                 <p className="text-black/70 font-medium italic">Our enterprise routing system manages cross-continental shipments for governments and research institutes.</p>
+                 <h2 className="text-4xl font-black text-black mb-4 tracking-tighter">{t('market.bulkTitle')}</h2>
+                 <p className="text-black/70 font-medium italic">{t('market.bulkDesc')}</p>
               </div>
               <Button size="lg" className="bg-black text-white hover:bg-zinc-900 rounded-full px-12 py-8 text-xl font-bold shadow-2xl group transition-all hover:scale-105">
-                 Request Quote
+                 {t('market.btnQuote')}
               </Button>
            </div>
         </div>

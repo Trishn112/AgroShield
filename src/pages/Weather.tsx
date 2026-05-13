@@ -26,7 +26,7 @@ export default function Weather() {
     const humidity = weather.main.humidity;
 
     if (temp > 35) {
-      newAlerts.push({ title: 'Heat Advisory', msg: `Critical heat detected (${temp}°C). Hydrate crops.` });
+      newAlerts.push({ title: t('weather.advisory'), msg: `Critical heat detected (${temp}°C). Hydrate crops.` });
     } else if (temp < 5) {
       newAlerts.push({ title: 'Frost Alert', msg: `Sub-optimal thermals (${temp}°C). Frost protection required.` });
     } else {
@@ -135,7 +135,7 @@ export default function Weather() {
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center space-y-4">
            <RefreshCw className="w-10 h-10 text-emerald-500 animate-spin mx-auto" />
-           <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">Accessing Satellite Feed...</p>
+           <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">{t('common.loading')}</p>
         </div>
       </div>
     );

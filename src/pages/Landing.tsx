@@ -3,8 +3,10 @@ import { motion } from 'motion/react';
 import { ArrowRight, Shield, Zap, Droplets, Map, ShoppingCart, Activity } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/lib/languageStore';
 
 export default function Landing() {
+  const { t } = useLanguage();
   return (
     <div className="bg-black text-white selection:bg-emerald-500 selection:text-white overflow-hidden">
       {/* Hero Section */}
@@ -26,28 +28,28 @@ export default function Landing() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8 hover:bg-emerald-500/10 hover:border-emerald-500/30 transition-all cursor-default">
               <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-ping"></span>
-              <span className="text-zinc-400 text-xs font-semibold tracking-widest uppercase">AI-Powered Agriculture</span>
+              <span className="text-zinc-400 text-xs font-semibold tracking-widest uppercase">{t('landing.aiTag')}</span>
             </div>
             
             <h1 className="text-6xl md:text-8xl font-black mb-6 tracking-tight leading-[0.9]">
-              Protecting <span className="text-emerald-500 italic">Crops</span>.<br />
-              Protecting <span className="text-blue-400 italic">Lives</span>.
+              {t('landing.heroTitle1')} <span className="text-emerald-500 italic">{t('landing.heroTitle2')}</span>.<br />
+              {t('landing.heroTitle1')} <span className="text-blue-400 italic">{t('landing.heroTitle3')}</span>.
             </h1>
             
             <p className="max-w-2xl mx-auto text-zinc-400 text-lg md:text-xl mb-12 leading-relaxed">
-              AgroShield AI leverages cutting-edge environmental intelligence and smart farming tools to build a sustainable future for our planet's food systems.
+              {t('landing.heroDesc')}
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to="/crop-analysis">
                 <Button size="lg" className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-full px-8 py-7 text-lg group">
-                  Analyze Crop
+                  {t('landing.btnAnalyze')}
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
               <Link to="/dashboard">
                 <Button variant="outline" size="lg" className="border-white/10 bg-white/5 hover:bg-white/10 text-white rounded-full px-8 py-7 text-lg">
-                  Monitor Environment
+                  {t('landing.btnMonitor')}
                 </Button>
               </Link>
             </div>
@@ -80,39 +82,39 @@ export default function Landing() {
       <section className="py-24 px-4 bg-zinc-950/50 relative">
         <div className="max-w-7xl mx-auto">
           <div className="mb-20">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">The Future of Farming</h2>
-            <p className="text-zinc-500 max-w-xl">Intelligent tools designed for modern environmental challenges.</p>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">{t('landing.futureTitle')}</h2>
+            <p className="text-zinc-500 max-w-xl">{t('landing.futureDesc')}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <FeatureCard 
               icon={<Shield className="w-8 h-8 text-emerald-500" />}
-              title="Disease Detection AI"
-              desc="Upload crop photos and get instant diagnosis with high precision confidence scoring."
+              title={t('landing.feature1Title')}
+              desc={t('landing.feature1Desc')}
               link="/crop-analysis"
             />
             <FeatureCard 
               icon={<Activity className="w-8 h-8 text-blue-400" />}
-              title="Real-time Monitoring"
-              desc="Live environmental alerts for flood zones, temperature spikes, and AQI monitoring."
+              title={t('landing.feature2Title')}
+              desc={t('landing.feature2Desc')}
               link="/dashboard"
             />
             <FeatureCard 
               icon={<Droplets className="w-8 h-8 text-cyan-400" />}
-              title="Smart Irrigation"
-              desc="Optimize water usage with AI-driven recommendations based on soil and weather data."
+              title={t('landing.feature3Title')}
+              desc={t('landing.feature3Desc')}
               link="/irrigation"
             />
             <FeatureCard 
               icon={<ShoppingCart className="w-8 h-8 text-blue-400" />}
-              title="Direct Marketplace"
-              desc="Connect local farmers with consumers bypassing intermediaries for fair trade."
+              title={t('landing.feature4Title')}
+              desc={t('landing.feature4Desc')}
               link="/marketplace"
             />
             <FeatureCard 
               icon={<Zap className="w-8 h-8 text-yellow-500" />}
-              title="Disaster Alerts"
-              desc="Stay 72 hours ahead with predictive modeling for heatwaves, storms, and pests."
+              title={t('landing.feature5Title')}
+              desc={t('landing.feature5Desc')}
               link="/dashboard"
             />
           </div>
@@ -123,13 +125,13 @@ export default function Landing() {
       <section className="py-32 px-4">
         <div className="max-w-4xl mx-auto text-center bg-gradient-to-br from-zinc-900 to-zinc-950 border border-white/5 rounded-[40px] p-16 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-emerald-500/10 blur-[80px]"></div>
-          <h2 className="text-4xl md:text-6xl font-bold mb-8 tracking-tighter">Ready to secure your crops?</h2>
+          <h2 className="text-4xl md:text-6xl font-bold mb-8 tracking-tighter">{t('landing.ctaTitle')}</h2>
           <p className="text-zinc-400 mb-12 text-xl max-w-xl mx-auto">
-            Join 850,000+ farmers and researchers building a more resilient world.
+            {t('landing.ctaDesc')}
           </p>
           <Link to="/auth">
             <Button size="lg" className="bg-white text-black hover:bg-zinc-200 rounded-full px-12 py-8 text-xl font-bold transition-all hover:scale-105">
-              Launch AgroShield
+              {t('landing.launchBtn')}
             </Button>
           </Link>
         </div>

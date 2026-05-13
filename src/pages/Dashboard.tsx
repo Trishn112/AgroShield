@@ -32,7 +32,7 @@ import { useLanguage } from '@/lib/languageStore';
 import { getCurrentWeatherByCoords, getForecastByCoords, WeatherResponse, getCurrentAQIByCoords, AirQualityResponse, getAQIDescription } from '@/services/weatherService';
 import { toast } from 'sonner';
 import { collection, query, onSnapshot, orderBy, limit } from 'firebase/firestore';
-import { db, auth } from '@/lib/firebase';
+import { db, auth, handleFirestoreError, OperationType } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
 interface Alert {
@@ -76,13 +76,7 @@ export default function Dashboard() {
         });
         setFirestoreAlerts(alerts);
       }, (err) => {
-        // Only log error if user is actually signed in
-        if (auth.currentUser) {
-          console.error("Alerts listener error:", err);
-          if (err.message.includes('permissions')) {
-            toast.error("Dashboard sync error. Please check your credentials.");
-          }
-        }
+        handleFirestoreError(err, OperationType.GET, 'alerts');
       });
     };
 
@@ -330,7 +324,7 @@ export default function Dashboard() {
             desc="Solar irradiance nominal"
           />
           <StatCard 
-            title="Humidity" 
+            title={t('weather.humidity')} 
             value={weather ? `${weather.main.humidity}%` : '--'} 
             icon={<Droplets className="w-5 h-5" />} 
             trend="Live"
@@ -426,7 +420,7 @@ export default function Dashboard() {
         </div>
 
         {/* Lower Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="bg-zinc-900 border-white/5 p-6">
              <div className="flex items-center justify-between mb-4">
                <h3 className="text-white font-semibold">{t('dash.risk')}</h3>
@@ -461,20 +455,6 @@ export default function Dashboard() {
                  </li>
                ))}
              </ul>
-          </Card>
-
-          <Card className="bg-zinc-900 border-white/5 p-0 overflow-hidden relative group">
-             <img 
-               src="https://picsum.photos/seed/agro-analysis/400/300" 
-               className="w-full h-full object-cover opacity-40 group-hover:scale-105 transition-transform duration-700" 
-               alt="Analysis"
-               referrerPolicy="no-referrer"
-             />
-             <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 p-6 flex flex-col justify-end">
-                <Badge variant="outline" className="w-fit mb-2 border-emerald-500/30 text-emerald-400 bg-emerald-500/10">Active GIS</Badge>
-                <h3 className="text-white font-bold text-lg mb-1">Environmental Analysis</h3>
-                <p className="text-zinc-400 text-xs">Access continental-scale risk visualizations.</p>
-             </div>
           </Card>
         </div>
       </div>

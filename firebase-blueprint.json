@@ -70,6 +70,19 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["type", "title", "msg", "createdAt"]
+    },
+    "Feedback": {
+      "title": "User Feedback",
+      "description": "User submitted bug reports or feature requests",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "category": { "type": "string", "enum": ["bug", "feature", "general"] },
+        "message": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "category", "message", "createdAt"]
     }
   },
   "firestore": {
@@ -92,6 +105,10 @@
     "/alerts/{alertId}": {
       "schema": "Alert",
       "description": "Global system alerts"
+    },
+    "/feedback/{feedbackId}": {
+      "schema": "Feedback",
+      "description": "User feedback submissions"
     }
   }
 }

@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Leaf, Mail, Lock, User, Chrome } from 'lucide-react';
 import { toast } from 'sonner';
+import { useLanguage } from '@/lib/languageStore';
 
 enum OperationType {
   CREATE = 'create',
@@ -49,6 +50,7 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
 }
 
 export default function Auth() {
+  const { t } = useLanguage();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -150,8 +152,8 @@ export default function Auth() {
           <div className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(16,185,129,0.3)]">
             <Leaf className="text-white w-10 h-10" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">AgroShield AI</h1>
-          <p className="text-zinc-500 text-sm">Secure the future of your environment.</p>
+          <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">{t('nav.appName')}</h1>
+          <p className="text-zinc-500 text-sm">{t('auth.tag')}</p>
         </div>
 
         <Card className="bg-zinc-900/50 backdrop-blur-xl border-white/10 shadow-2xl rounded-[32px] overflow-hidden">
@@ -170,7 +172,7 @@ export default function Auth() {
                  Register
                </button>
              </div>
-             <CardTitle className="text-2xl font-bold text-white">{isLogin ? 'Welcome Back' : 'Join AgroShield'}</CardTitle>
+             <CardTitle className="text-2xl font-bold text-white">{isLogin ? t('auth.welcomeBack') : t('auth.join')}</CardTitle>
              <CardDescription className="text-zinc-500">
                {isLogin ? 'Access your dashboard and reports.' : 'Start your sustainability journey today.'}
              </CardDescription>
@@ -182,7 +184,7 @@ export default function Auth() {
                   <div className="relative">
                     <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                     <Input 
-                      placeholder="Full Name" 
+                      placeholder={t('auth.name')} 
                       className="bg-black/50 border-white/10 pl-12 h-14 rounded-2xl focus:border-emerald-500 transition-all text-white" 
                       value={name}
                       onChange={(e) => setName(e.target.value)}
@@ -206,7 +208,7 @@ export default function Auth() {
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                 <Input 
                   type="email"
-                  placeholder="Email Address" 
+                  placeholder={t('auth.email')} 
                   className="bg-black/50 border-white/10 pl-12 h-14 rounded-2xl focus:border-emerald-500 transition-all text-white" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -217,7 +219,7 @@ export default function Auth() {
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                 <Input 
                   type="password"
-                  placeholder="Password" 
+                  placeholder={t('auth.password')} 
                   className="bg-black/50 border-white/10 pl-12 h-14 rounded-2xl focus:border-emerald-500 transition-all text-white" 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -225,13 +227,13 @@ export default function Auth() {
                 />
               </div>
               <Button type="submit" disabled={loading} className="w-full h-14 bg-emerald-600 hover:bg-emerald-500 rounded-2xl font-bold text-white text-lg transition-all active:scale-95">
-                {loading ? 'Processing...' : isLogin ? 'Sign In' : 'Create Account'}
+                {loading ? t('common.loading') : isLogin ? t('auth.signIn') : t('auth.createAccount')}
               </Button>
             </form>
 
             <div className="relative py-4">
               <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10"></div></div>
-              <div className="relative flex justify-center text-xs uppercase"><span className="bg-zinc-900 px-4 text-zinc-500 font-bold tracking-widest">Or continue with</span></div>
+              <div className="relative flex justify-center text-xs uppercase"><span className="bg-zinc-900 px-4 text-zinc-500 font-bold tracking-widest">{t('auth.or')}</span></div>
             </div>
 
             <Button 
@@ -241,7 +243,7 @@ export default function Auth() {
               className="w-full h-14 bg-white/5 border-white/10 rounded-2xl text-zinc-300 hover:bg-white/10 hover:text-white flex items-center justify-center gap-3 transition-all active:scale-95"
             >
               <Chrome className="w-5 h-5" />
-              Google Authentication
+              {t('auth.googleAuth')}
             </Button>
           </CardContent>
         </Card>

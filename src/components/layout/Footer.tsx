@@ -11,7 +11,7 @@ export default function Footer() {
               <Leaf className="text-white w-6 h-6" />
             </div>
             <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
-              AgroShield
+              Kisan Sathi
             </span>
           </Link>
           <p className="text-zinc-400 text-sm leading-relaxed max-w-xs">
@@ -62,7 +62,7 @@ export default function Footer() {
 
       <div className="max-w-7xl mx-auto pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
         <p className="text-zinc-500 text-xs">
-          &copy; {new Date().getFullYear()} AgroShield AI. All rights reserved.
+          &copy; {new Date().getFullYear()} Kisan Sathi. All rights reserved.
         </p>
         <p className="text-zinc-500 text-xs flex items-center gap-1">
           Made with <span className="text-emerald-500">♥</span> for the planet.

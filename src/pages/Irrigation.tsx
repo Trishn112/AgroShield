@@ -25,6 +25,7 @@ import { Input } from '@/components/ui/input';
 import { GoogleGenAI, Type } from "@google/genai";
 import { getCurrentWeatherByCoords, WeatherResponse } from '@/services/weatherService';
 import { toast } from 'sonner';
+import { useLanguage } from '@/lib/languageStore';
 
 interface CropProfile {
   name: string;
@@ -49,6 +50,7 @@ const CROP_DATABASE: CropProfile[] = [
 ];
 
 export default function Irrigation() {
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCrop, setSelectedCrop] = useState<CropProfile>(CROP_DATABASE[0]);
   const [computing, setComputing] = useState(false);
@@ -159,13 +161,13 @@ export default function Irrigation() {
           <div className="max-w-2xl">
             <div className="flex items-center gap-2 text-emerald-500 mb-4">
                <Activity className="w-4 h-4 animate-pulse" />
-               <span className="text-[10px] font-black uppercase tracking-[0.4em]">Resource Optimization Matrix</span>
+               <span className="text-[10px] font-black uppercase tracking-[0.4em]">{t('irr.tag')}</span>
             </div>
-            <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tighter leading-none italic">
-              HYDRO <span className="text-emerald-500">GENESIS</span>
+            <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tighter leading-none italic uppercase">
+              {t('irr.title')}
             </h1>
             <p className="text-zinc-500 text-lg font-medium leading-relaxed italic">
-              Neural architecture for planetary scale hydration. Real-time atmospheric analysis synchronized with sub-surface soil telemetry.
+              {t('irr.desc')}
             </p>
           </div>
           <Button 
@@ -175,9 +177,9 @@ export default function Irrigation() {
           >
             {computing ? (
               <span className="flex items-center gap-3">
-                <RefreshCw className="w-6 h-6 animate-spin" /> SYNCHRONIZING
+                <RefreshCw className="w-6 h-6 animate-spin" /> {t('irr.syncing').toUpperCase()}
               </span>
-            ) : 'INITIALIZE COMPUTE'}
+            ) : t('irr.btnCompute').toUpperCase()}
           </Button>
         </div>
 
@@ -186,15 +188,15 @@ export default function Irrigation() {
            <div className="space-y-6">
              <Card className="bg-slate-900/40 backdrop-blur-xl border-white/5 rounded-[40px] p-8">
                 <div className="space-y-6">
-                  <div className="relative">
+                   <div className="relative">
                     <div className="flex items-center justify-between mb-4">
-                      <label className="text-[10px] uppercase font-black tracking-widest text-zinc-600">Search Crop Colony</label>
+                      <label className="text-[10px] uppercase font-black tracking-widest text-zinc-600">{t('irr.searchLabel')}</label>
                       <Sprout className="w-3 h-3 text-emerald-500" />
                     </div>
                     <div className="relative">
                       <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                       <Input 
-                        placeholder="Search any crop..." 
+                        placeholder={t('irr.searchPlaceholder')} 
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && searchGlobalCrop()}
@@ -254,7 +256,7 @@ export default function Irrigation() {
 
              <Card className="bg-slate-900/40 backdrop-blur-xl border-white/5 rounded-[40px] p-8 space-y-4">
                 <div className="flex items-center justify-between mb-6">
-                  <h4 className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em]">Sector Telemetry</h4>
+                  <h4 className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em]">{t('irr.telemetryTitle')}</h4>
                   <div className="flex items-center gap-2">
                     <MapPin className="w-3 h-3 text-blue-500" />
                     <span className="text-[10px] font-bold text-zinc-500 truncate max-w-[100px]">{realTimeWeather?.name || 'Searching...'}</span>
@@ -262,7 +264,7 @@ export default function Irrigation() {
                 </div>
                 {[
                   { 
-                    label: 'Soil Moisture', 
+                    label: t('irr.soilMoisture'), 
                     value: selectedCrop.moisture, 
                     current: manualTelemetry.moisture,
                     suffix: '%',
@@ -271,7 +273,7 @@ export default function Irrigation() {
                     color: 'text-blue-400' 
                   },
                   { 
-                    label: 'Thermals (Soil/Air)', 
+                    label: t('irr.thermals'), 
                     value: selectedCrop.temp, 
                     current: manualTelemetry.temp,
                     suffix: '°C',
@@ -280,7 +282,7 @@ export default function Irrigation() {
                     color: 'text-orange-500' 
                   },
                   { 
-                    label: 'Cloud Density', 
+                    label: t('irr.cloudDensity'), 
                     value: selectedCrop.cloud, 
                     current: manualTelemetry.cloud,
                     suffix: '%',
@@ -289,7 +291,7 @@ export default function Irrigation() {
                     color: 'text-zinc-500' 
                   },
                   { 
-                    label: 'Wind Velocity', 
+                    label: t('irr.windVelocity'), 
                     value: selectedCrop.wind, 
                     current: manualTelemetry.wind,
                     suffix: 'km/h',
@@ -300,13 +302,13 @@ export default function Irrigation() {
                 ].map((input, i) => (
                   <div key={i} className="p-5 bg-black/40 rounded-3xl border border-white/5 group hover:border-white/10 transition-all">
                     <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
+                       <div className="flex items-center gap-3">
                         <div className={`p-2 bg-white/5 rounded-xl ${input.color}`}>
                           {input.icon}
                         </div>
                         <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{input.label}</span>
                       </div>
-                      <Badge variant="outline" className="border-white/5 text-[9px] text-zinc-600 uppercase font-black tracking-tighter">Manual Override</Badge>
+                      <Badge variant="outline" className="border-white/5 text-[9px] text-zinc-600 uppercase font-black tracking-tighter">{t('irr.manualOverride')}</Badge>
                     </div>
                     
                     <div className="flex items-end justify-between px-1">
@@ -324,7 +326,7 @@ export default function Irrigation() {
                       </div>
                       <div className="text-right">
                         <div className="text-xl font-black text-emerald-500 italic tracking-tighter opacity-60">{input.value}</div>
-                        <div className="text-[9px] font-bold text-emerald-500/50 uppercase">Optimal</div>
+                        <div className="text-[9px] font-bold text-emerald-500/50 uppercase">{t('irr.optimal')}</div>
                       </div>
                     </div>
                   </div>
@@ -380,9 +382,9 @@ export default function Irrigation() {
                   <div className="w-32 h-32 bg-white/5 rounded-[48px] flex items-center justify-center mb-10 group-hover:bg-emerald-500/10 transition-all">
                     <Gauge className="text-zinc-800 w-16 h-16 group-hover:text-emerald-500 transition-colors animate-slow-spin" />
                   </div>
-                  <h3 className="text-zinc-500 font-black text-3xl mb-4 italic tracking-tighter uppercase">Neural Matrix Standby</h3>
+                  <h3 className="text-zinc-500 font-black text-3xl mb-4 italic tracking-tighter uppercase">{t('irr.standbyTitle')}</h3>
                   <p className="text-zinc-700 max-w-sm text-sm font-bold leading-relaxed uppercase tracking-widest">
-                    Select a biological colony from the telemetry stream to initialize irrigation vector calculations.
+                    {t('irr.standbyDesc')}
                   </p>
                </div>
              )}
@@ -394,15 +396,15 @@ export default function Irrigation() {
                     <Info className="text-emerald-500 w-8 h-8" />
                   </div>
                   <div>
-                    <h4 className="text-2xl font-black text-white italic tracking-tighter">SUSTAINABILITY INDEX</h4>
+                    <h4 className="text-2xl font-black text-white italic tracking-tighter">{t('irr.sustainability').toUpperCase()}</h4>
                     <p className="text-zinc-600 text-[10px] font-black uppercase tracking-[0.3em]">Planetary Resource Protection</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
                   {[
-                    { title: 'Resource Efficiency', val: '98.2%', color: 'text-blue-400' },
-                    { title: 'Global Yield Impact', val: '+22.4%', color: 'text-emerald-500' },
-                    { title: 'Soil Vitality', val: 'OPTIMAL', color: 'text-white' },
+                    { title: t('irr.resourceEff'), val: '98.2%', color: 'text-blue-400' },
+                    { title: t('irr.globalYield'), val: '+22.4%', color: 'text-emerald-500' },
+                    { title: t('irr.soilVitality'), val: 'OPTIMAL', color: 'text-white' },
                   ].map((stat, i) => (
                     <div key={i} className="space-y-3">
                       <div className="text-zinc-700 text-[9px] font-black uppercase tracking-[0.4em]">{stat.title}</div>
