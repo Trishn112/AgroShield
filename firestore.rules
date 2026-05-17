@@ -59,19 +59,21 @@ service cloud.firestore {
     // --- Crop Analysis ---
     match /crops/{cropId} {
       function isValidCrop(data) {
-        return data.keys().hasAll(['userId', 'imageUrl', 'disease', 'severity', 'treatment', 'confidence', 'createdAt']) &&
+        return data.keys().hasAll(['userId', 'imageUrl', 'disease', 'pathogenType', 'severity', 'symptoms', 'causes', 'solution', 'confidence', 'createdAt']) &&
                data.userId == request.auth.uid &&
-               data.imageUrl is string && data.imageUrl.size() <= 1048576; // Support base64 if needed, though usually URLs
+               data.imageUrl is string && data.imageUrl.size() <= 1048576 &&
+               data.solution is map &&
+               data.solution.keys().hasAll(['immediate', 'longTerm']);
       }
 
-      allow read: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
       allow create: if isEmailVerified() && isValidCrop(incoming());
-      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
     }
 
     // --- Irrigation Logs ---
     match /irrigation_logs/{logId} {
-      allow read: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
       allow create: if isEmailVerified() && incoming().userId == request.auth.uid;
     }
 
