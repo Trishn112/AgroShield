@@ -33,7 +33,7 @@ app.post("/api/analyze-crop", async (req, res) => {
       return res.status(400).json({ error: "Image is required" });
     }
 
-    const modelName = "gemini-3-flash-preview"; // Using the stable multimodal model
+    const modelName = "gemini-1.5-flash"; // Using the stable multimodal model
     const response = await ai.models.generateContent({ 
       model: modelName,
       contents: [
@@ -106,7 +106,7 @@ app.post("/api/chat", async (req, res) => {
     }));
 
     const chat = ai.chats.create({ 
-      model: "gemini-3-flash-preview",
+      model: "gemini-1.5-flash",
       config: {
         systemInstruction: "You are an expert AI agriculture consultant for Kisan Sathi. You ONLY provide help related to agriculture, farming, crops, livestock, irrigation, and soil. If the user asks about anything outside of these topics, politely decline."
       },
