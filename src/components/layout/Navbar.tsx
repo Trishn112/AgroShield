@@ -56,7 +56,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-12 h-12 rounded-xl overflow-hidden group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(16,185,129,0.3)]">
-              <img src="/src/assets/images/kisansathi_logo_1779010672779.png" alt="Kisan Sathi Logo" className="w-full h-full object-cover" />
+              <img src="/logo.png" alt="Kisan Sathi Logo" className="w-full h-full object-cover" />
             </div>
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
               {t('nav.appName')}

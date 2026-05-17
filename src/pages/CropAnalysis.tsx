@@ -109,9 +109,15 @@ export default function CropAnalysis() {
       
       if (auth.currentUser) {
         try {
+          // Compress image for storage if it's too large
+          let storageImage = image;
+          if (image.length > 800000) { // If > 800KB Base64
+            storageImage = await compressImage(image, 0.5);
+          }
+
           await addDoc(collection(db, 'crops'), {
             userId: auth.currentUser.uid,
-            imageUrl: image,
+            imageUrl: storageImage,
             ...analysis,
             createdAt: new Date().toISOString()
           });
@@ -126,6 +132,23 @@ export default function CropAnalysis() {
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  const compressImage = (base64: string, quality: number): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = base64;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const MAX_WIDTH = 800;
+        const scale = MAX_WIDTH / img.width;
+        canvas.width = MAX_WIDTH;
+        canvas.height = img.height * scale;
+        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+    });
   };
 
   return (
@@ -303,7 +326,7 @@ export default function CropAnalysis() {
                 className="h-full flex flex-col justify-center items-center text-center p-12 border-2 border-dashed border-white/5 rounded-[40px] bg-zinc-950/50"
               >
                 <div className="w-24 h-24 rounded-[32px] overflow-hidden mb-8 rotate-3 shadow-2xl opacity-50 grayscale hover:grayscale-0 hover:opacity-100 transition-all">
-                  <img src="/src/assets/images/kisansathi_logo_1779010672779.png" alt="Logo Placeholder" className="w-full h-full object-cover" />
+                  <img src="/logo.png" alt="Logo Placeholder" className="w-full h-full object-cover" />
                 </div>
                 <h3 className="text-zinc-500 font-bold text-xl mb-4 italic">{t('crop.standbyTitle')}</h3>
                 <p className="text-zinc-600 text-sm max-w-xs">

@@ -128,7 +128,7 @@ export default function Auth() {
       >
         <div className="flex flex-col items-center mb-10">
           <div className="w-20 h-20 rounded-2xl overflow-hidden mb-4 shadow-[0_0_30px_rgba(16,185,129,0.3)]">
-            <img src="/src/assets/images/kisansathi_logo_1779010672779.png" alt="Kisan Sathi Logo" className="w-full h-full object-cover" />
+            <img src="/logo.png" alt="Kisan Sathi Logo" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">{t('nav.appName')}</h1>
           <p className="text-zinc-500 text-sm">{t('auth.tag')}</p>
