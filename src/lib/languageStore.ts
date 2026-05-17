@@ -39,6 +39,10 @@ const translations = {
     'common.low': 'Low',
     'common.medium': 'Medium',
     'common.high': 'High',
+    'common.farmer': 'Farmer',
+    'common.consumer': 'Consumer',
+    'common.analyst': 'Analyst',
+    'common.admin': 'Admin',
     
     // Weather
     'weather.title': 'Weather Intelligence',
@@ -341,6 +345,10 @@ const translations = {
     'common.low': 'कम',
     'common.medium': 'मध्यम',
     'common.high': 'उच्च',
+    'common.farmer': 'किसान',
+    'common.consumer': 'उपभोक्ता',
+    'common.analyst': 'विश्लेषक',
+    'common.admin': 'प्रशासक',
     
     // Weather
     'weather.title': 'मौसम जानकारी',

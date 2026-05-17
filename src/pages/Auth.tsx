@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { auth, db } from '@/lib/firebase';
+import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, onAuthStateChanged } from 'firebase/auth';
+import { auth, db, handleFirestoreError, OperationType } from '@/lib/firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -11,43 +11,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Mail, Lock, User, Chrome } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '@/lib/languageStore';
-
-enum OperationType {
-  CREATE = 'create',
-  UPDATE = 'update',
-  DELETE = 'delete',
-  LIST = 'list',
-  GET = 'get',
-  WRITE = 'write',
-}
-
-interface FirestoreErrorInfo {
-  error: string;
-  operationType: OperationType;
-  path: string | null;
-  authInfo: {
-    userId?: string | null;
-    email?: string | null;
-    emailVerified?: boolean | null;
-    isAnonymous?: boolean | null;
-  }
-}
-
-function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
-  const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
-    authInfo: {
-      userId: auth.currentUser?.uid,
-      email: auth.currentUser?.email,
-      emailVerified: auth.currentUser?.emailVerified,
-      isAnonymous: auth.currentUser?.isAnonymous,
-    },
-    operationType,
-    path
-  };
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
-  return new Error(JSON.stringify(errInfo));
-}
 
 export default function Auth() {
   const { t } = useLanguage();
@@ -59,6 +22,15 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        navigate('/dashboard');
+      }
+    });
+    return () => unsubscribe();
+  }, [navigate]);
+
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
@@ -67,24 +39,26 @@ export default function Auth() {
       
       const userRef = doc(db, 'users', result.user.uid);
       let userDoc;
-      try {
-        userDoc = await getDoc(userRef);
-      } catch (err) {
-        throw handleFirestoreError(err, OperationType.GET, `users/${result.user.uid}`);
-      }
+        try {
+          userDoc = await getDoc(userRef);
+        } catch (err) {
+          handleFirestoreError(err, OperationType.GET, `users/${result.user.uid}`);
+          throw err;
+        }
 
       if (!userDoc.exists()) {
         const userData = {
           uid: result.user.uid,
-          email: result.user.email,
-          displayName: result.user.displayName,
+          email: result.user.email || '',
+          displayName: result.user.displayName || result.user.email?.split('@')[0] || t('profile.unnamed'),
           role: 'farmer',
           createdAt: new Date().toISOString()
         };
         try {
           await setDoc(userRef, userData);
         } catch (err) {
-          throw handleFirestoreError(err, OperationType.WRITE, `users/${result.user.uid}`);
+          handleFirestoreError(err, OperationType.WRITE, `users/${result.user.uid}`);
+          throw err;
         }
       }
       toast.success(`Welcome back, ${result.user.displayName}!`);
@@ -124,7 +98,8 @@ export default function Auth() {
         try {
           await setDoc(userRef, userData);
         } catch (err) {
-          throw handleFirestoreError(err, OperationType.WRITE, `users/${result.user.uid}`);
+          handleFirestoreError(err, OperationType.WRITE, `users/${result.user.uid}`);
+          throw err;
         }
         toast.success("Account created!");
       }

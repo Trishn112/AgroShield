@@ -110,7 +110,7 @@ export default function Navbar() {
             ) : (
               <Link to="/auth">
                 <Button variant="default" className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-full px-6">
-                  Get Started
+                  {t('nav.getStarted')}
                 </Button>
               </Link>
             )}

@@ -75,16 +75,6 @@ service cloud.firestore {
       allow create: if isEmailVerified() && incoming().userId == request.auth.uid;
     }
 
-    // --- Products ---
-    match /products/{productId} {
-      allow read: if true;
-      allow write: if isEmailVerified() && (
-        (incoming().farmerId == request.auth.uid) || 
-        (existing().farmerId == request.auth.uid) ||
-        isAdmin()
-      );
-    }
-
     // --- System Alerts ---
     match /alerts/{alertId} {
       allow read: if isSignedIn();
@@ -114,8 +104,12 @@ service cloud.firestore {
                data.name is string && data.name.size() <= 256;
       }
       allow read: if true;
-      allow create: if isSignedIn() && isValidProduct(incoming());
-      allow update, delete: if isSignedIn() && existing().farmerId == request.auth.uid;
+      allow create: if isSignedIn() && (isValidProduct(incoming()) || isAdmin());
+      allow update: if isSignedIn() && (
+        (existing().farmerId == request.auth.uid && incoming().farmerId == existing().farmerId) ||
+        isAdmin()
+      );
+      allow delete: if isSignedIn() && (existing().farmerId == request.auth.uid || isAdmin());
     }
 
     // --- User Tasks ---
@@ -127,10 +121,20 @@ service cloud.firestore {
                data.priority in ['Low', 'Medium', 'High'] &&
                data.completed is bool;
       }
-      allow read, write: if isSignedIn() && (
-        (existing() != null && existing().userId == request.auth.uid) ||
-        (existing() == null && isValidTask(incoming()))
+      
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidTask(incoming());
+      allow update: if isSignedIn() && (
+        (existing().userId == request.auth.uid && incoming().userId == existing().userId) ||
+        isAdmin()
+      ) && (
+        // Action: Complete toggle
+        (incoming().diff(existing()).affectedKeys().hasOnly(['completed'])) ||
+        // Action: General edit
+        (incoming().diff(existing()).affectedKeys().hasAll(['title', 'priority']))
       );
+      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
     }
   }
 }

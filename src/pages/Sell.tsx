@@ -30,6 +30,7 @@ import { useLanguage } from '@/lib/languageStore';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useNavigate } from 'react-router-dom';
 
 interface ProductListing {
   id: string;
@@ -47,6 +48,7 @@ interface ProductListing {
 
 const Sell: React.FC = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [myProducts, setMyProducts] = useState<ProductListing[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [user, setUser] = useState<any>(null);
@@ -140,7 +142,7 @@ const Sell: React.FC = () => {
           </div>
           <h2 className="text-2xl font-black uppercase italic tracking-tight text-white">{t('sell.accessRestricted')}</h2>
           <p className="text-zinc-500 max-w-sm mx-auto">{t('sell.identify')}</p>
-          <Button className="bg-emerald-600 hover:bg-emerald-500 rounded-xl px-10 h-12 font-black uppercase" onClick={() => window.location.href = '/auth'}>
+          <Button className="bg-emerald-600 hover:bg-emerald-500 rounded-xl px-10 h-12 font-black uppercase" onClick={() => navigate('/auth')}>
             {t('auth.signIn')}
           </Button>
         </div>
