@@ -32,10 +32,15 @@ import {
 } from 'firebase/firestore';
 import { db, auth, handleFirestoreError, OperationType } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useLanguage } from '@/lib/languageStore';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { loadStripe } from '@stripe/stripe-js';
+
+const stripePromise = (import.meta as any).env.VITE_STRIPE_PUBLISHABLE_KEY 
+  ? loadStripe((import.meta as any).env.VITE_STRIPE_PUBLISHABLE_KEY)
+  : null;
 import { 
   Card, 
   CardContent, 
@@ -63,12 +68,21 @@ interface ProductListing {
 
 const Marketplace: React.FC = () => {
   const { t } = useLanguage();
+  const [searchParams] = useSearchParams();
   const [products, setProducts] = useState<ProductListing[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [user, setUser] = useState<any>(null);
+  const [loadingPayment, setLoadingPayment] = useState<string | null>(null);
 
   useEffect(() => {
+    if (searchParams.get('success')) {
+      toast.success("Payment successful! The seller will contact you shortly.");
+    }
+    if (searchParams.get('canceled')) {
+      toast.error("Payment canceled.");
+    }
+
     const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -90,6 +104,53 @@ const Marketplace: React.FC = () => {
       authUnsubscribe();
     };
   }, []);
+
+  const handleBuy = async (product: ProductListing) => {
+    if (!user) {
+      toast.error("Please sign in to buy products.");
+      return;
+    }
+
+    if (!stripePromise) {
+      toast.error("Payments are currently disabled. Please contact the administrator.");
+      return;
+    }
+
+    setLoadingPayment(product.id);
+    try {
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId: product.id,
+          name: product.name,
+          price: product.price,
+        }),
+      });
+
+      const session = await response.json();
+      
+      if (session.error) {
+        throw new Error(session.error);
+      }
+
+      const stripe = await stripePromise;
+      const { error } = await (stripe as any)!.redirectToCheckout({
+        sessionId: session.id,
+      });
+
+      if (error) {
+        throw error;
+      }
+    } catch (err: any) {
+      console.error("Payment Error:", err);
+      toast.error(err.message || "Failed to initiate payment.");
+    } finally {
+      setLoadingPayment(null);
+    }
+  };
 
   const filteredProducts = products.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -208,10 +269,18 @@ const Marketplace: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-8 pt-4 z-10">
+              <div className="mt-8 pt-4 z-10 space-y-3">
+                <Button 
+                  onClick={() => handleBuy(p)}
+                  disabled={loadingPayment === p.id}
+                  className="w-full flex items-center justify-center gap-3 bg-emerald-600 text-white hover:bg-emerald-500 transition-all rounded-2xl h-14 font-black uppercase tracking-[0.1em] text-sm italic shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                  {loadingPayment === p.id ? t('market.processing') : t('market.buyNow')}
+                </Button>
                 <a 
                   href={`mailto:${p.contact}`}
-                  className="w-full flex items-center justify-center gap-3 bg-white text-black hover:bg-emerald-500 hover:text-white transition-all rounded-2xl h-14 font-black uppercase tracking-[0.1em] text-sm italic"
+                  className="w-full flex items-center justify-center gap-3 bg-white text-black hover:bg-zinc-200 transition-all rounded-2xl h-14 font-black uppercase tracking-[0.1em] text-sm italic"
                 >
                   <Phone className="w-4 h-4" /> {t('market.initiateTrade')}
                 </a>

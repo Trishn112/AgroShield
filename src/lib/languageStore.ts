@@ -139,6 +139,8 @@ const translations = {
     'market.cat.Tool': 'Tools',
     'market.notFound': 'Resources Not Found',
     'market.broadcasting': 'Broadcasting scan for available nodes...',
+    'market.buyNow': 'Buy Now',
+    'market.processing': 'Processing Trade...',
 
     // Sell
     'sell.tag': 'Seller Console',
@@ -445,6 +447,8 @@ const translations = {
     'market.cat.Tool': 'उपकरण',
     'market.notFound': 'संसाधन नहीं मिले',
     'market.broadcasting': 'उपलब्ध नोड्स के लिए स्कैन ब्रॉडकास्ट किया जा रहा है...',
+    'market.buyNow': 'अभी खरीदें',
+    'market.processing': 'व्यापार संसाधित किया जा रहा है...',
 
     // Sell
     'sell.tag': 'विक्रेता कंसोल',
