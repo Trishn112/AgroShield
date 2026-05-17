@@ -39,7 +39,7 @@ app.post("/api/analyze-crop", async (req, res) => {
     }
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-exp",
+      model: "gemini-2.0-flash",
       contents: {
         parts: [
           {
@@ -112,7 +112,7 @@ app.post("/api/chat", async (req, res) => {
     }
 
     const chat = ai.chats.create({
-      model: "gemini-2.0-flash-exp",
+      model: "gemini-2.0-flash",
       config: {
         systemInstruction:
           "You are an expert AI agriculture consultant for Kisan Sathi. You ONLY provide help related to agriculture, farming, crops, livestock, irrigation, and soil. If the user asks about anything outside these topics, politely decline."
