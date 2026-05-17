@@ -22,7 +22,6 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { GoogleGenAI, Type } from "@google/genai";
 import { getCurrentWeatherByCoords, WeatherResponse } from '@/services/weatherService';
 import { toast } from 'sonner';
 import { useLanguage } from '@/lib/languageStore';
@@ -64,9 +63,6 @@ export default function Irrigation() {
     wind: ''
   });
   
-  // Initialize AI
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
   useEffect(() => {
     // Get current location weather
     if (navigator.geolocation) {
@@ -96,42 +92,72 @@ export default function Irrigation() {
     );
   }, [searchQuery]);
 
-  const searchGlobalCrop = async () => {
-    if (!searchQuery) return;
-    setSearchingAI(true);
-    try {
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: `Provide agricultural optimization parameters for the crop: "${searchQuery}".`,
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              name: { type: Type.STRING },
-              moisture: { type: Type.STRING, description: "Range like 40-50%" },
-              temp: { type: Type.STRING, description: "Range like 20-30°C" },
-              cloud: { type: Type.STRING, description: "Range like 10-20%" },
-              wind: { type: Type.STRING, description: "Range like 5-15km/h" },
-              description: { type: Type.STRING, description: "One sentence hydration advice" },
-            },
-            required: ["name", "moisture", "temp", "cloud", "wind", "description"]
-          }
-        }
-      });
+const searchGlobalCrop = async () => {
+  if (!searchQuery) return;
 
-      const data = JSON.parse(response.text);
-      setSelectedCrop(data);
-      setSearchQuery('');
-      setRecommendation(null);
-      toast.success(`Telemetry loaded for ${data.name}`);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to retrieve AI crop telemetry.");
-    } finally {
-      setSearchingAI(false);
+  setSearchingAI(true);
+
+  try {
+    const response = await fetch(
+      "https://kisan-sathi-dz6w.onrender.com/api/chat",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify({
+          messages: [
+            {
+              role: "user",
+              content: `
+Provide agricultural optimization parameters for crop "${searchQuery}" in JSON format.
+
+Return ONLY valid JSON.
+
+Format:
+{
+  "name": "",
+  "moisture": "",
+  "temp": "",
+  "cloud": "",
+  "wind": "",
+  "description": ""
+}
+`
+            }
+          ]
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed AI request");
     }
-  };
+
+    const text = await response.text();
+
+    let data;
+
+    try {
+      data = JSON.parse(text);
+    } catch {
+      toast.error("AI returned invalid JSON");
+      return;
+    }
+
+    setSelectedCrop(data);
+    setSearchQuery("");
+    setRecommendation(null);
+
+    toast.success(`Telemetry loaded for ${data.name}`);
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to retrieve AI crop telemetry.");
+  } finally {
+    setSearchingAI(false);
+  }
+};
 
   const calculateIrrigation = () => {
     setComputing(true);
