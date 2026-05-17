@@ -33,15 +33,13 @@ app.post("/api/analyze-crop", async (req, res) => {
       return res.status(400).json({ error: "Image is required" });
     }
 
-    const modelName = "gemini-flash-latest"; // Using the standard multimodal model
+    const modelName = "gemini-3-flash-preview"; // Using the stable multimodal model
     const response = await ai.models.generateContent({ 
       model: modelName,
-      contents: {
-        parts: [
-          { text: "Analyze this crop image for diseases. Pathogen identification, specific symptoms, cause, immediate treatment, and long-term prevention. Return ONLY a JSON object." },
-          { inlineData: { data: image.split(',')[1], mimeType: "image/jpeg" } }
-        ]
-      },
+      contents: [
+        { text: "Analyze this crop image for diseases. Identify the pathogen, describe symptoms, explain causes, and provide a solution object with 'immediate' and 'longTerm' treatment/prevention steps. Use the provided JSON schema. If the image is not a crop or clear, return a 'Not a crop' disease." },
+        { inlineData: { data: image.split(',')[1], mimeType: "image/jpeg" } }
+      ],
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -67,18 +65,29 @@ app.post("/api/analyze-crop", async (req, res) => {
       }
     });
 
-    // Clean response text in case it's wrapped in markdown
-    let text = response.text || "{}";
+    if (!response.text) {
+      throw new Error("Empty response from AI model");
+    }
+
+    let text = response.text.trim();
+    // Clean response text in case it's wrapped in markdown despite requested JSON
     if (text.includes("```json")) {
       text = text.split("```json")[1].split("```")[0].trim();
     } else if (text.includes("```")) {
       text = text.split("```")[1].split("```")[0].trim();
     }
 
-    res.json(JSON.parse(text));
-  } catch (error) {
+    try {
+      const parsed = JSON.parse(text);
+      res.json(parsed);
+    } catch (parseError) {
+      console.error("JSON Parsing Error:", text);
+      throw new Error("AI returned invalid JSON: " + (parseError instanceof Error ? parseError.message : String(parseError)));
+    }
+  } catch (error: any) {
     console.error("Analysis Error:", error);
-    res.status(500).json({ error: error instanceof Error ? error.message : "Analysis failed" });
+    const message = error.message || "Analysis failed";
+    res.status(500).json({ error: message });
   }
 });
 
@@ -90,18 +99,20 @@ app.post("/api/chat", async (req, res) => {
       return res.status(400).json({ error: "Messages array is required" });
     }
 
+    const lastMessage = messages[messages.length - 1].content;
+    const history = messages.slice(0, -1).map(m => ({
+      role: m.role === 'user' ? 'user' : 'model',
+      parts: [{ text: m.content }]
+    }));
+
     const chat = ai.chats.create({ 
-      model: "gemini-flash-latest",
+      model: "gemini-3-flash-preview",
       config: {
         systemInstruction: "You are an expert AI agriculture consultant for Kisan Sathi. You ONLY provide help related to agriculture, farming, crops, livestock, irrigation, and soil. If the user asks about anything outside of these topics, politely decline."
       },
-      history: messages.slice(0, -1).map(m => ({
-        role: m.role === 'user' ? 'user' : 'model',
-        parts: [{ text: m.content }]
-      }))
+      history: history
     });
 
-    const lastMessage = messages[messages.length - 1].content;
     const result = await chat.sendMessageStream({ message: lastMessage });
 
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');

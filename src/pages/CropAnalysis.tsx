@@ -109,10 +109,10 @@ export default function CropAnalysis() {
       
       if (auth.currentUser) {
         try {
-          // Compress image for storage if it's too large
+          // Compress image for storage if it's too large or just as a precaution
           let storageImage = image;
-          if (image.length > 800000) { // If > 800KB Base64
-            storageImage = await compressImage(image, 0.5);
+          if (image.length > 500000) { // If > 500KB Base64
+            storageImage = await compressImage(image, 0.4);
           }
 
           await addDoc(collection(db, 'crops'), {
@@ -142,7 +142,7 @@ export default function CropAnalysis() {
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        const MAX_WIDTH = 800;
+        const MAX_WIDTH = 600;
         const scale = MAX_WIDTH / img.width;
         canvas.width = MAX_WIDTH;
         canvas.height = img.height * scale;

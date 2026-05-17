@@ -8,7 +8,8 @@ export const analyzeCropDisease = async (imageBase64: string) => {
   });
 
   if (!response.ok) {
-    throw new Error("Analysis failed");
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || "Analysis failed");
   }
 
   return response.json();
@@ -22,7 +23,8 @@ export async function* getFarmingAdviceStream(messages: ChatMessage[]) {
   });
 
   if (!response.ok) {
-    throw new Error("Failed to connect to AI engine");
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || "Failed to connect to AI engine");
   }
 
   const reader = response.body?.getReader();
