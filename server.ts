@@ -11,13 +11,13 @@ const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
 app.use(cors({
-  origin: "https://kisansathii.online",
-  methods: ["GET", "POST"],
+  origin: true,
+  methods: ["GET", "POST", "OPTIONS"],
   credentials: true
 }));
 
-const ai = new GoogleGenAI({ 
-  apiKey: process.env.GEMINI_API_KEY || "" 
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY || ""
 });
 
 app.use(express.json({ limit: "10mb" }));
@@ -33,7 +33,9 @@ app.post("/api/analyze-crop", async (req, res) => {
     const { image } = req.body;
 
     if (!image) {
-      return res.status(400).json({ error: "Image is required" });
+      return res.status(400).json({
+        error: "Image is required"
+      });
     }
 
     const response = await ai.models.generateContent({
@@ -41,7 +43,8 @@ app.post("/api/analyze-crop", async (req, res) => {
       contents: {
         parts: [
           {
-            text: "Analyze this crop image for diseases. Include pathogen identification, symptoms, causes, immediate treatment, and long-term prevention."
+            text:
+              "Analyze this crop image for diseases. Include pathogen identification, symptoms, causes, immediate treatment, and long-term prevention."
           },
           {
             inlineData: {
@@ -90,7 +93,10 @@ app.post("/api/analyze-crop", async (req, res) => {
     res.json(JSON.parse(response.text || "{}"));
   } catch (error) {
     console.error("Analysis Error:", error);
-    res.status(500).json({ error: "Analysis failed" });
+
+    res.status(500).json({
+      error: "Analysis failed"
+    });
   }
 });
 
@@ -128,6 +134,7 @@ app.post("/api/chat", async (req, res) => {
 
     for await (const chunk of result) {
       const chunkText = chunk.text;
+
       if (chunkText) {
         res.write(chunkText);
       }
@@ -136,6 +143,7 @@ app.post("/api/chat", async (req, res) => {
     res.end();
   } catch (error) {
     console.error("Chat Error:", error);
+
     res.status(500).json({
       error: "Internal server error"
     });
@@ -145,8 +153,10 @@ app.post("/api/chat", async (req, res) => {
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
+      server: {
+        middlewareMode: true
+      },
+      appType: "spa"
     });
 
     app.use(vite.middlewares);
