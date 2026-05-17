@@ -9,7 +9,14 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+const ai = new GoogleGenAI({ 
+  apiKey: process.env.GEMINI_API_KEY || "",
+  httpOptions: {
+    headers: {
+      'User-Agent': 'aistudio-build',
+    }
+  }
+});
 
 app.use(express.json({ limit: '10mb' }));
 
@@ -26,11 +33,12 @@ app.post("/api/analyze-crop", async (req, res) => {
       return res.status(400).json({ error: "Image is required" });
     }
 
+    const modelName = "gemini-flash-latest"; // Using the standard multimodal model
     const response = await ai.models.generateContent({ 
-      model: "gemini-3-flash-preview",
+      model: modelName,
       contents: {
         parts: [
-          { text: "Analyze this crop image for diseases. Pathogen identification, specific symptoms, cause, immediate treatment, and long-term prevention." },
+          { text: "Analyze this crop image for diseases. Pathogen identification, specific symptoms, cause, immediate treatment, and long-term prevention. Return ONLY a JSON object." },
           { inlineData: { data: image.split(',')[1], mimeType: "image/jpeg" } }
         ]
       },
@@ -59,10 +67,18 @@ app.post("/api/analyze-crop", async (req, res) => {
       }
     });
 
-    res.json(JSON.parse(response.text || "{}"));
+    // Clean response text in case it's wrapped in markdown
+    let text = response.text || "{}";
+    if (text.includes("```json")) {
+      text = text.split("```json")[1].split("```")[0].trim();
+    } else if (text.includes("```")) {
+      text = text.split("```")[1].split("```")[0].trim();
+    }
+
+    res.json(JSON.parse(text));
   } catch (error) {
     console.error("Analysis Error:", error);
-    res.status(500).json({ error: "Analysis failed" });
+    res.status(500).json({ error: error instanceof Error ? error.message : "Analysis failed" });
   }
 });
 
@@ -75,7 +91,7 @@ app.post("/api/chat", async (req, res) => {
     }
 
     const chat = ai.chats.create({ 
-      model: "gemini-3-flash-preview",
+      model: "gemini-flash-latest",
       config: {
         systemInstruction: "You are an expert AI agriculture consultant for Kisan Sathi. You ONLY provide help related to agriculture, farming, crops, livestock, irrigation, and soil. If the user asks about anything outside of these topics, politely decline."
       },

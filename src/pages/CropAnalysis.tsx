@@ -126,9 +126,10 @@ export default function CropAnalysis() {
         }
       }
       toast.success("Analysis complete!");
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Analysis failed. Please try again.");
+      const errorMsg = error.message || "Analysis failed. Please try again.";
+      toast.error(errorMsg);
     } finally {
       setIsAnalyzing(false);
     }

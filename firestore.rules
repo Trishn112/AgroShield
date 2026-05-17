@@ -61,7 +61,7 @@ service cloud.firestore {
       function isValidCrop(data) {
         return data.keys().hasAll(['userId', 'imageUrl', 'disease', 'pathogenType', 'severity', 'symptoms', 'causes', 'solution', 'confidence', 'createdAt']) &&
                data.userId == request.auth.uid &&
-               data.imageUrl is string && data.imageUrl.size() <= 1000000 &&
+               data.imageUrl is string && data.imageUrl.size() <= 1500000 &&
                data.solution is map &&
                data.solution.keys().hasAll(['immediate', 'longTerm']);
       }
