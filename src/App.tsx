@@ -9,6 +9,7 @@ import CropAnalysis from '@/pages/CropAnalysis';
 import Weather from '@/pages/Weather';
 import Irrigation from '@/pages/Irrigation';
 import Marketplace from '@/pages/Marketplace';
+import Sell from '@/pages/Sell';
 import AdminPanel from '@/pages/AdminPanel';
 import Profile from '@/pages/Profile';
 import Chatbot from '@/components/Chatbot';
@@ -28,6 +29,7 @@ export default function App() {
             <Route path="/weather" element={<Weather />} />
             <Route path="/irrigation" element={<Irrigation />} />
             <Route path="/marketplace" element={<Marketplace />} />
+            <Route path="/sell" element={<Sell />} />
             <Route path="/admin" element={<AdminPanel />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<Navigate to="/" />} />

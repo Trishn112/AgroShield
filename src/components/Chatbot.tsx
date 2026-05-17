@@ -4,18 +4,16 @@ import { MessageSquare, X, Send, Bot, User, Sparkles, Minus, Maximize2 } from 'l
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { getFarmingAdvice } from '@/services/ai';
-
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-}
+import { getFarmingAdviceStream } from '@/services/ai';
+import { useLanguage } from '@/lib/languageStore';
+import { ChatMessage } from '@/types';
 
 export default function Chatbot() {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: 'Hello! I am AgroAI, your planetary environmental consultant. How can I assist your farm today?' }
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    { role: 'assistant', content: t('chat.welcome') }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,17 +28,43 @@ export default function Chatbot() {
   const handleSend = async () => {
     if (!input.trim() || loading) return;
 
-    const userMessage: Message = { role: 'user', content: input };
-    setMessages(prev => [...prev, userMessage]);
+    const userMessage: ChatMessage = { role: 'user', content: input };
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInput('');
     setLoading(true);
 
     try {
-      const response = await getFarmingAdvice(input);
-      setMessages(prev => [...prev, { role: 'assistant', content: response || "I'm sorry, I couldn't process that request." }]);
+      // Add a placeholder message for the assistant
+      setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
+      
+      let fullResponse = '';
+      const stream = getFarmingAdviceStream(newMessages);
+
+      for await (const chunk of stream) {
+        fullResponse += chunk;
+        setMessages(prev => {
+          const updated = [...prev];
+          const lastIndex = updated.length - 1;
+          updated[lastIndex] = { ...updated[lastIndex], content: fullResponse };
+          return updated;
+        });
+      }
+
+      if (!fullResponse) {
+        setMessages(prev => {
+          const updated = [...prev];
+          updated[updated.length - 1] = { role: 'assistant', content: t('chat.noProcess') };
+          return updated;
+        });
+      }
     } catch (error) {
       console.error(error);
-      setMessages(prev => [...prev, { role: 'assistant', content: "An error occurred while connecting to the neural engine." }]);
+      setMessages(prev => {
+        const updated = [...prev];
+        updated[updated.length - 1] = { role: 'assistant', content: t('chat.error') };
+        return updated;
+      });
     } finally {
       setLoading(false);
     }
@@ -66,7 +90,7 @@ export default function Chatbot() {
                   <h4 className="text-white font-bold text-sm tracking-tight">AgroAI Systems</h4>
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                    <span className="text-emerald-500 text-[10px] uppercase font-black tracking-widest">Neural Live</span>
+                    <span className="text-emerald-500 text-[10px] uppercase font-black tracking-widest">{t('chat.neuralLive')}</span>
                   </div>
                 </div>
               </div>
@@ -119,7 +143,7 @@ export default function Chatbot() {
             <div className="p-6 bg-black/40 border-t border-white/5">
                <div className="relative group">
                  <Input 
-                   placeholder="Ask anything..." 
+                   placeholder={t('chat.placeholder')} 
                    className="bg-white/5 border-white/10 h-14 pl-6 pr-14 rounded-2xl text-white focus:border-emerald-500/50 focus:ring-0 transition-all placeholder:text-zinc-600"
                    value={input}
                    onChange={(e) => setInput(e.target.value)}
@@ -147,7 +171,7 @@ export default function Chatbot() {
             onClick={() => setIsMinimized(false)}
           >
             <Sparkles className="w-4 h-4 animate-slow-spin" />
-            Restore Intelligence Session
+            {t('chat.restore')}
             <Maximize2 className="w-3 h-3 ml-2" />
           </motion.div>
         )}

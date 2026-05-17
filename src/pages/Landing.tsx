@@ -58,10 +58,10 @@ export default function Landing() {
           {/* Floating Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-24">
             {[
-              { label: 'Crops Protected', val: '4.2M+', color: 'text-emerald-500' },
-              { label: 'Water Saved', val: '12B Gal', color: 'text-blue-400' },
-              { label: 'Risk Accuracy', val: '99.4%', color: 'text-emerald-500' },
-              { label: 'Farmers Impacted', val: '850K', color: 'text-blue-400' },
+              { key: 'landing.stats1Label', val: '4.2M+', color: 'text-emerald-500' },
+              { key: 'landing.stats2Label', val: '12B Gal', color: 'text-blue-400' },
+              { key: 'landing.stats3Label', val: '99.4%', color: 'text-emerald-500' },
+              { key: 'landing.stats4Label', val: '850K', color: 'text-blue-400' },
             ].map((stat, i) => (
               <motion.div
                 key={i}
@@ -71,7 +71,7 @@ export default function Landing() {
                 className="bg-white/5 border border-white/5 rounded-2xl p-6 backdrop-blur-sm"
               >
                 <div className={`text-3xl font-bold mb-1 ${stat.color}`}>{stat.val}</div>
-                <div className="text-zinc-500 text-xs uppercase tracking-widest">{stat.label}</div>
+                <div className="text-zinc-500 text-xs uppercase tracking-widest">{t(stat.key)}</div>
               </motion.div>
             ))}
           </div>
@@ -141,6 +141,7 @@ export default function Landing() {
 }
 
 function FeatureCard({ icon, title, desc, link }: { icon: React.ReactNode, title: string, desc: string, link: string }) {
+  const { t } = useLanguage();
   return (
     <Link to={link}>
       <motion.div 
@@ -153,7 +154,7 @@ function FeatureCard({ icon, title, desc, link }: { icon: React.ReactNode, title
         <h3 className="text-xl font-bold mb-3">{title}</h3>
         <p className="text-zinc-500 text-sm leading-relaxed mb-6">{desc}</p>
         <div className="flex items-center gap-2 text-emerald-500 text-xs font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-          Launch Module <ArrowRight className="w-3 h-3" />
+          {t('landing.launchModule')} <ArrowRight className="w-3 h-3" />
         </div>
       </motion.div>
     </Link>

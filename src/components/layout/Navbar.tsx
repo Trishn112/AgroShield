@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { Leaf, Menu, X, LayoutDashboard, Cloud, Droplets, Map, ShoppingCart, User, Bell, Shield, Languages } from 'lucide-react';
+import { Menu, X, LayoutDashboard, Cloud, Droplets, Map, ShoppingCart, User, Bell, Shield, Languages, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -18,10 +18,11 @@ export default function Navbar() {
 
   const navItems = [
     { name: t('nav.dashboard'), path: '/dashboard', icon: LayoutDashboard },
-    { name: t('nav.crop'), path: '/crop-analysis', icon: Leaf },
+    { name: t('nav.crop'), path: '/crop-analysis', icon: Cloud }, // Changed icon to Cloud or something else as Leaf is now the logo
     { name: t('nav.weather'), path: '/weather', icon: Cloud },
     { name: t('nav.irrigation'), path: '/irrigation', icon: Droplets },
     { name: t('nav.marketplace'), path: '/marketplace', icon: ShoppingCart },
+    { name: t('nav.sell'), path: '/sell', icon: Store },
     { name: t('nav.admin'), path: '/admin', icon: Shield },
   ];
 
@@ -53,9 +54,9 @@ export default function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-black/50 backdrop-blur-xl border-b border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center group-hover:rotate-12 transition-transform shadow-[0_0_20px_rgba(16,185,129,0.3)]">
-              <Leaf className="text-white w-6 h-6" />
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-12 h-12 rounded-xl overflow-hidden group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+              <img src="/src/assets/images/kisansathi_logo_1779010672779.png" alt="Kisan Sathi Logo" className="w-full h-full object-cover" />
             </div>
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
               {t('nav.appName')}

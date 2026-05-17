@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Leaf, Mail, Lock, User, Chrome } from 'lucide-react';
+import { Mail, Lock, User, Chrome } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '@/lib/languageStore';
 
@@ -91,6 +91,9 @@ export default function Auth() {
       navigate('/dashboard');
     } catch (error: any) {
       console.error(error);
+      if (error.code === 'auth/popup-closed-by-user') {
+        return; // User closed the popup, no need to show error toast
+      }
       const message = error.code === 'auth/popup-blocked' 
         ? "Popup was blocked by your browser. Please allow popups for this site."
         : error.message || "Authentication failed.";
@@ -149,8 +152,8 @@ export default function Auth() {
         className="w-full max-w-md relative z-10"
       >
         <div className="flex flex-col items-center mb-10">
-          <div className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(16,185,129,0.3)]">
-            <Leaf className="text-white w-10 h-10" />
+          <div className="w-20 h-20 rounded-2xl overflow-hidden mb-4 shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+            <img src="/src/assets/images/kisansathi_logo_1779010672779.png" alt="Kisan Sathi Logo" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">{t('nav.appName')}</h1>
           <p className="text-zinc-500 text-sm">{t('auth.tag')}</p>
@@ -163,18 +166,18 @@ export default function Auth() {
                  onClick={() => setIsLogin(true)}
                  className={`flex-1 py-3 text-xs font-bold uppercase tracking-widest rounded-xl transition-all ${isLogin ? 'bg-emerald-500 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
                >
-                 Login
+                 {t('auth.login')}
                </button>
                <button 
                  onClick={() => setIsLogin(false)}
                  className={`flex-1 py-3 text-xs font-bold uppercase tracking-widest rounded-xl transition-all ${!isLogin ? 'bg-emerald-500 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
                >
-                 Register
+                 {t('auth.register')}
                </button>
              </div>
              <CardTitle className="text-2xl font-bold text-white">{isLogin ? t('auth.welcomeBack') : t('auth.join')}</CardTitle>
              <CardDescription className="text-zinc-500">
-               {isLogin ? 'Access your dashboard and reports.' : 'Start your sustainability journey today.'}
+               {isLogin ? t('auth.loginDesc') : t('auth.registerDesc')}
              </CardDescription>
           </CardHeader>
           <CardContent className="p-8 pt-4 space-y-6">
@@ -197,9 +200,9 @@ export default function Auth() {
                         onChange={(e) => setRole(e.target.value)}
                         className="col-span-2 bg-black/50 border border-white/10 h-14 rounded-2xl px-4 text-sm focus:border-emerald-500 outline-none appearance-none cursor-pointer"
                      >
-                       <option value="farmer">I am a Farmer</option>
-                       <option value="consumer">I am a Consumer</option>
-                       <option value="analyst">I am an Analyst</option>
+                       <option value="farmer">{t('auth.iamFarmer')}</option>
+                       <option value="consumer">{t('auth.iamConsumer')}</option>
+                       <option value="analyst">{t('auth.iamAnalyst')}</option>
                      </select>
                   </div>
                 </div>

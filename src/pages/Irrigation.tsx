@@ -235,7 +235,7 @@ export default function Irrigation() {
                             >
                               <Sparkles className={`w-4 h-4 text-emerald-500 ${searchingAI ? 'animate-spin' : ''}`} />
                               <span className="text-emerald-500 text-xs font-black uppercase tracking-widest">
-                                {searchingAI ? 'Consulting AI...' : `Search Global Bio-Database: "${searchQuery}"`}
+                                {searchingAI ? t('irr.consultingAI') : `${t('irr.bioDatabase')} "${searchQuery}"`}
                               </span>
                             </button>
                           )}
@@ -322,7 +322,7 @@ export default function Irrigation() {
                           />
                           <span className="text-xl font-black text-zinc-500 italic mb-0.5">{input.suffix}</span>
                         </div>
-                        <div className="text-[9px] font-bold text-zinc-700 uppercase">Input Value</div>
+                        <div className="text-[9px] font-bold text-zinc-700 uppercase">{t('irr.inputValue')}</div>
                       </div>
                       <div className="text-right">
                         <div className="text-xl font-black text-emerald-500 italic tracking-tighter opacity-60">{input.value}</div>
@@ -347,11 +347,11 @@ export default function Irrigation() {
                     </div>
                     <div className="relative z-10">
                       <div className="flex items-center gap-3 mb-8 text-black/60 text-[10px] font-black uppercase tracking-[0.4em]">
-                        <CheckCircle2 className="w-4 h-4" /> Action Protocol Validated
+                        <CheckCircle2 className="w-4 h-4" /> {t('irr.actionProtocol')}
                       </div>
                       <div className="text-[10rem] font-black text-black leading-none mb-8 tracking-tighter italic">
                         {recommendation.amount.split('.')[0]}<span className="text-5xl">.{recommendation.amount.split('.')[1]}</span>
-                        <div className="text-3xl uppercase tracking-[0.2em] mt-2 opacity-60">LITERS / PLANT</div>
+                        <div className="text-3xl uppercase tracking-[0.2em] mt-2 opacity-60">{t('irr.litersPerPlant')}</div>
                       </div>
                       <p className="text-black/80 font-bold text-xl leading-relaxed max-w-xl italic">
                         "{recommendation.reason}"
@@ -361,20 +361,20 @@ export default function Irrigation() {
 
                  <Card className="bg-slate-900/40 backdrop-blur-xl border-white/5 p-10 rounded-[40px] group transition-all hover:border-emerald-500/20">
                     <div className="flex items-center justify-between mb-10">
-                       <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Temporal Window</span>
+                       <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">{t('irr.temporalWindow')}</span>
                        <Activity className="text-emerald-500 w-5 h-5 group-hover:scale-125 transition-transform" />
                     </div>
                     <div className="text-4xl font-black text-white italic tracking-tighter mb-2">{recommendation.timing}</div>
-                    <p className="text-zinc-600 text-xs font-bold leading-relaxed uppercase tracking-wide">Optimized for solar shadow synchronization.</p>
+                    <p className="text-zinc-600 text-xs font-bold leading-relaxed uppercase tracking-wide">{t('irr.solarSync')}</p>
                  </Card>
 
                  <Card className="bg-slate-900/40 backdrop-blur-xl border-white/5 p-10 rounded-[40px] group transition-all hover:border-blue-500/20">
                     <div className="flex items-center justify-between mb-10">
-                       <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Cycle Pulsation</span>
+                       <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">{t('irr.cyclePulsation')}</span>
                        <Waves className="text-blue-500 w-5 h-5 group-hover:scale-125 transition-transform" />
                     </div>
                     <div className="text-4xl font-black text-white italic tracking-tighter mb-2">{recommendation.frequency}</div>
-                    <p className="text-zinc-600 text-xs font-bold leading-relaxed uppercase tracking-wide">Dynamic transpiration buffering active.</p>
+                    <p className="text-zinc-600 text-xs font-bold leading-relaxed uppercase tracking-wide">{t('irr.transpirationBuffering')}</p>
                  </Card>
                </motion.div>
              ) : (

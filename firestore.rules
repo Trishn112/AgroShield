@@ -102,5 +102,35 @@ service cloud.firestore {
       allow create: if isSignedIn() && isValidFeedback(incoming());
       allow read: if isAdmin();
     }
+
+    // --- Products (Marketplace) ---
+    match /products/{productId} {
+      function isValidProduct(data) {
+        return data.keys().hasAll(['farmerId', 'name', 'category', 'price', 'stock', 'createdAt']) &&
+               data.farmerId == request.auth.uid &&
+               data.category in ['Crop', 'Seed', 'Fertilizer', 'Tool'] &&
+               data.price is number && data.price > 0 &&
+               data.stock is number &&
+               data.name is string && data.name.size() <= 256;
+      }
+      allow read: if true;
+      allow create: if isSignedIn() && isValidProduct(incoming());
+      allow update, delete: if isSignedIn() && existing().farmerId == request.auth.uid;
+    }
+
+    // --- User Tasks ---
+    match /tasks/{taskId} {
+      function isValidTask(data) {
+        return data.keys().hasAll(['userId', 'title', 'priority', 'completed', 'createdAt']) &&
+               data.userId == request.auth.uid &&
+               data.title is string && data.title.size() <= 256 &&
+               data.priority in ['Low', 'Medium', 'High'] &&
+               data.completed is bool;
+      }
+      allow read, write: if isSignedIn() && (
+        (existing() != null && existing().userId == request.auth.uid) ||
+        (existing() == null && isValidTask(incoming()))
+      );
+    }
   }
 }

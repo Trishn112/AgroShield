@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/lib/languageStore';
-import { getCurrentWeatherByCity, getCurrentWeatherByCoords, getForecastByCoords, WeatherResponse, getCurrentAQIByCoords, AirQualityResponse, getAQIDescription } from '@/services/weatherService';
+import { getCurrentWeatherByCity, getCurrentWeatherByCoords, getForecastByCoords, WeatherResponse, getCurrentAQIByCoords, AirQualityResponse, getAQIDescription, getSearchSuggestions } from '@/services/weatherService';
 import { toast } from 'sonner';
 
 export default function Weather() {
@@ -19,6 +19,8 @@ export default function Weather() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [alerts, setAlerts] = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [isLocating, setIsLocating] = useState(false);
 
   const generateAlerts = (weather: WeatherResponse) => {
     const newAlerts = [];
@@ -28,13 +30,13 @@ export default function Weather() {
     if (temp > 35) {
       newAlerts.push({ title: t('weather.advisory'), msg: `Critical heat detected (${temp}°C). Hydrate crops.` });
     } else if (temp < 5) {
-      newAlerts.push({ title: 'Frost Alert', msg: `Sub-optimal thermals (${temp}°C). Frost protection required.` });
+      newAlerts.push({ title: t('alert.frost'), msg: t('alert.frostMsg') + ` (${temp}°C)` });
     } else {
-      newAlerts.push({ title: 'Thermal Nominal', msg: `Stable thermals for ${weather.name}.` });
+      newAlerts.push({ title: t('alert.systemNominal'), msg: `Stable thermals for ${weather.name}.` });
     }
 
     if (humidity > 80) {
-      newAlerts.push({ title: 'Humidity Peak', msg: `High moisture level (${humidity}%). Monitor for fungus.` });
+      newAlerts.push({ title: t('alert.pathogen'), msg: t('alert.pathogenMsg') + ` (${humidity}%)` });
     } else if (humidity < 30) {
       newAlerts.push({ title: 'Aridity High', msg: `Low humidity (${humidity}%). Increase irrigation frequency.` });
     } else {
@@ -107,18 +109,33 @@ export default function Weather() {
     const defaultLon = 77.2090;
 
     if (navigator.geolocation) {
+      setIsLocating(true);
       navigator.geolocation.getCurrentPosition(
-        (pos) => fetchByCoords(pos.coords.latitude, pos.coords.longitude),
-        () => {
-          fetchByCoords(defaultLat, defaultLon);
-          toast.info("Location access denied. Using default.");
+        (pos) => {
+          setIsLocating(false);
+          fetchByCoords(pos.coords.latitude, pos.coords.longitude);
         },
-        { timeout: 10000 }
+        () => {
+          setIsLocating(false);
+          fetchByCoords(defaultLat, defaultLon);
+          toast.info("Location access denied. Using New Delhi (Default).");
+        },
+        { timeout: 15000, enableHighAccuracy: true }
       );
     } else {
       fetchByCoords(defaultLat, defaultLon);
     }
   }, []);
+
+  const handleSearchChange = async (val: string) => {
+    setCity(val);
+    if (val.length >= 2) {
+      const found = await getSearchSuggestions(val);
+      setSuggestions(found);
+    } else {
+      setSuggestions([]);
+    }
+  };
 
   const getIcon = (cond: string) => {
     switch (cond.toLowerCase()) {
@@ -162,9 +179,31 @@ export default function Weather() {
                 placeholder={t('weather.search')} 
                 className="bg-zinc-900 border-white/10 pl-10 h-11 rounded-xl text-white" 
                 value={city}
-                onChange={(e) => setCity(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && fetchByCity()}
               />
+
+              {suggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-zinc-900 border border-white/10 rounded-2xl overflow-hidden z-[60] shadow-2xl">
+                  {suggestions.map((s, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setCity(s.name);
+                        fetchByCity();
+                        setSuggestions([]);
+                      }}
+                      className="w-full px-4 py-3 text-left text-sm text-zinc-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-3"
+                    >
+                      <MapPin className="w-3.5 h-3.5 text-emerald-500" />
+                      <div>
+                        <div className="font-bold">{s.name}</div>
+                        <div className="text-[10px] text-zinc-500 uppercase tracking-widest">{s.region}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <Button onClick={fetchByCity} variant="outline" className="bg-white/5 border-white/10 text-white h-11 rounded-xl gap-2">
               <Search className="w-4 h-4" />
@@ -199,10 +238,12 @@ export default function Weather() {
               <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-emerald-500/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
               <CardContent className="p-10 relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                  <div className="space-y-6">
-                   <div className="flex items-center gap-4">
-                     <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 px-3">High Stability</Badge>
-                     <span className="text-zinc-500 text-xs font-bold uppercase tracking-widest leading-none">{t('weather.lastUpdated')}: Just Now</span>
-                   </div>
+                    <div className="flex items-center gap-4">
+                      <Badge className={`${isLocating ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'} px-3 uppercase tracking-widest text-[10px] font-black`}>
+                        {isLocating ? t('dash.locating') : t('dash.systemsOptimal')}
+                      </Badge>
+                      <span className="text-zinc-500 text-xs font-bold uppercase tracking-widest leading-none">{t('weather.lastUpdated')}: Just Now</span>
+                    </div>
                    <div className="flex items-end gap-4">
                      <span className="text-8xl font-black text-white leading-none">{Math.round(weather.main.temp)}°</span>
                      <div className="mb-2">
@@ -210,10 +251,16 @@ export default function Weather() {
                        <div className="text-zinc-500 flex items-center gap-1">{t('weather.feelsLike')} {Math.round(weather.main.feels_like)}°</div>
                      </div>
                    </div>
-                   <div className="flex gap-8 text-zinc-400">
+                   <div className="grid grid-cols-2 lg:grid-cols-5 gap-6 text-zinc-400">
                      <div className="flex flex-col">
                        <span className="text-[10px] uppercase font-black tracking-widest text-zinc-600 mb-1">{t('weather.humidity')}</span>
                        <span className="text-white font-bold flex items-center gap-1 text-xl"><Droplets className="w-4 h-4 text-blue-400" /> {weather.main.humidity}%</span>
+                     </div>
+                     <div className="flex flex-col">
+                        <span className="text-[10px] uppercase font-black tracking-widest text-zinc-600 mb-1">Precipitation</span>
+                        <span className="text-white font-bold flex items-center gap-1 text-xl">
+                          <CloudRain className="w-4 h-4 text-blue-400" /> {weather.rain?.['1h'] || weather.rain?.['3h'] || weather.snow?.['1h'] || weather.snow?.['3h'] || 0}mm
+                        </span>
                      </div>
                      <div className="flex flex-col">
                        <span className="text-[10px] uppercase font-black tracking-widest text-zinc-600 mb-1">{t('weather.wind')}</span>
@@ -221,9 +268,10 @@ export default function Weather() {
                      </div>
                      <div className="flex flex-col">
                        <span className="text-[10px] uppercase font-black tracking-widest text-zinc-600 mb-1">Air Quality</span>
-                       <span className={`font-bold flex items-center gap-1 text-xl ${aqi ? getAQIDescription(aqi.list[0].main.aqi).color : 'text-zinc-400'}`}>
-                         <Wind className="w-4 h-4" /> {aqi ? getAQIDescription(aqi.list[0].main.aqi).label : '--'}
+                       <span className={`font-bold flex items-center gap-1 text-xl ${aqi ? getAQIDescription(aqi).color : 'text-zinc-400'}`}>
+                         <Wind className="w-4 h-4" /> {aqi ? getAQIDescription(aqi).score : '--'}
                        </span>
+                       {aqi && <span className="text-[8px] text-zinc-500 uppercase font-black mt-1 truncate">{getAQIDescription(aqi).label} • {getAQIDescription(aqi).pm25}µg/m³</span>}
                      </div>
                      <div className="flex flex-col">
                        <span className="text-[10px] uppercase font-black tracking-widest text-zinc-600 mb-1">{t('weather.visibility')}</span>

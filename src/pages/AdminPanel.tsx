@@ -64,10 +64,10 @@ export default function AdminPanel() {
               <Shield className="text-emerald-500 w-8 h-8" />
               {t('admin.title')}
             </h1>
-            <p className="text-zinc-500 text-sm">System administration and planetary oversight.</p>
+            <p className="text-zinc-500 text-sm">{t('admin.desc')}</p>
           </div>
           <Button className="bg-emerald-600 hover:bg-emerald-500 rounded-full px-6">
-            Generate System Report
+            {t('admin.genReport')}
           </Button>
         </div>
 
@@ -76,14 +76,14 @@ export default function AdminPanel() {
           <CardHeader className="p-8 border-b border-white/5">
              <CardTitle className="text-white flex items-center gap-2">
                <Bell className="w-5 h-5 text-emerald-500" />
-               Emergency Broadcast System
+               {t('admin.ebs')}
              </CardTitle>
-             <CardDescription className="text-zinc-500">Send real-time alerts to all active personnel dashboards.</CardDescription>
+             <CardDescription className="text-zinc-500">{t('admin.ebsDesc')}</CardDescription>
           </CardHeader>
           <CardContent className="p-8 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                <div className="space-y-2">
-                 <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Alert Type</label>
+                 <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">{t('admin.alertType')}</label>
                  <div className="flex gap-2">
                    {['info', 'warning', 'critical'].map(tType => (
                      <button
@@ -91,13 +91,13 @@ export default function AdminPanel() {
                         onClick={() => setBroadcast({ ...broadcast, type: tType })}
                         className={`flex-1 py-3 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all ${broadcast.type === tType ? 'bg-white text-black border-white' : 'bg-black/40 text-zinc-500 border-white/10 hover:border-white/20'}`}
                      >
-                       {tType}
+                       {t(`common.${tType.toLowerCase()}`)}
                      </button>
                    ))}
                  </div>
                </div>
                <div className="md:col-span-2 space-y-2">
-                 <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Headline</label>
+                 <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">{t('admin.headline')}</label>
                  <Input 
                    value={broadcast.title}
                    onChange={e => setBroadcast({ ...broadcast, title: e.target.value })}
@@ -107,7 +107,7 @@ export default function AdminPanel() {
                </div>
             </div>
             <div className="space-y-2">
-               <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Message Details</label>
+               <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">{t('admin.msgDetails')}</label>
                <Textarea 
                  value={broadcast.msg}
                  onChange={e => setBroadcast({ ...broadcast, msg: e.target.value })}
@@ -121,7 +121,7 @@ export default function AdminPanel() {
                className="w-full h-14 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase tracking-widest gap-2"
             >
                {sending ? <RefreshCw className="animate-spin w-5 h-5" /> : <Send className="w-5 h-5" />}
-               Commence System-Wide Broadcast
+               {t('admin.commence')}
             </Button>
           </CardContent>
         </Card>
@@ -129,10 +129,10 @@ export default function AdminPanel() {
         {/* Admin Tabs */}
         <div className="flex bg-zinc-900 overflow-hidden w-fit rounded-2xl border border-white/5">
           {[
-            { id: 'users', label: 'User Registry', icon: Users },
-            { id: 'reports', label: 'Crop Reports', icon: FileText },
-            { id: 'market', label: 'Marketplace', icon: ShoppingBag },
-            { id: 'alerts', label: 'System Alerts', icon: Bell },
+            { id: 'users', label: t('admin.userRegistry'), icon: Users },
+            { id: 'reports', label: t('admin.cropReports'), icon: FileText },
+            { id: 'market', label: t('nav.marketplace'), icon: ShoppingBag },
+            { id: 'alerts', label: t('dash.alerts'), icon: Bell },
           ].map(tab => (
             <button
               key={tab.id}
@@ -149,11 +149,11 @@ export default function AdminPanel() {
           <CardHeader className="p-8 border-b border-white/5 flex flex-row items-center justify-between">
             <div className="relative w-96">
                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-               <Input placeholder="Filter records..." className="bg-black/40 border-white/10 pl-12 h-12 rounded-2xl text-white" />
+               <Input placeholder={t('admin.filterRecords')} className="bg-black/40 border-white/10 pl-12 h-12 rounded-2xl text-white" />
             </div>
             <div className="flex gap-2">
                <Button variant="outline" className="border-white/10 text-white h-11 rounded-xl">
-                 <Filter className="w-4 h-4 mr-2" /> All Regions
+                 <Filter className="w-4 h-4 mr-2" /> {t('admin.allRegions')}
                </Button>
             </div>
           </CardHeader>
@@ -161,10 +161,10 @@ export default function AdminPanel() {
              <Table>
                <TableHeader className="bg-black/40">
                  <TableRow className="border-white/5">
-                   <TableHead className="text-zinc-500 font-bold uppercase text-[10px] tracking-widest py-6 px-8">Entity</TableHead>
-                   <TableHead className="text-zinc-500 font-bold uppercase text-[10px] tracking-widest">Status</TableHead>
-                   <TableHead className="text-zinc-500 font-bold uppercase text-[10px] tracking-widest">Type</TableHead>
-                   <TableHead className="text-zinc-500 font-bold uppercase text-[10px] tracking-widest text-right px-8">Actions</TableHead>
+                   <TableHead className="text-zinc-500 font-bold uppercase text-[10px] tracking-widest py-6 px-8">{t('admin.entity')}</TableHead>
+                   <TableHead className="text-zinc-500 font-bold uppercase text-[10px] tracking-widest">{t('admin.status')}</TableHead>
+                   <TableHead className="text-zinc-500 font-bold uppercase text-[10px] tracking-widest">{t('admin.type')}</TableHead>
+                   <TableHead className="text-zinc-500 font-bold uppercase text-[10px] tracking-widest text-right px-8">{t('admin.actions')}</TableHead>
                  </TableRow>
                </TableHeader>
                <TableBody>
@@ -182,7 +182,7 @@ export default function AdminPanel() {
                         </div>
                      </TableCell>
                      <TableCell>
-                        <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">Active</Badge>
+                        <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">{t('admin.active')}</Badge>
                      </TableCell>
                      <TableCell className="text-zinc-400 text-xs font-medium">Standard Data-Feed</TableCell>
                      <TableCell className="px-8 text-right">
@@ -200,10 +200,10 @@ export default function AdminPanel() {
         {/* Global Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
            {[
-             { label: 'CPU Load', val: '12%', color: 'text-emerald-500' },
-             { label: 'Storage', val: '4.2TB', color: 'text-blue-400' },
-             { label: 'Active Sessions', val: '24,042', color: 'text-white' },
-             { label: 'Alert Rate', val: 'Low', color: 'text-zinc-500' },
+             { label: t('admin.cpuLoad'), val: '12%', color: 'text-emerald-500' },
+             { label: t('admin.storage'), val: '4.2TB', color: 'text-blue-400' },
+             { label: t('admin.activeSessions'), val: '24,042', color: 'text-white' },
+             { label: t('admin.alertRate'), val: 'Low', color: 'text-zinc-500' },
            ].map((s, i) => (
              <div key={i} className="bg-zinc-900 p-6 rounded-3xl border border-white/5">
                 <div className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-1">{s.label}</div>

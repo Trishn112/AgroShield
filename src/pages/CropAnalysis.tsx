@@ -10,8 +10,10 @@ import { analyzeCropDisease } from '@/services/ai';
 import { auth, db, handleFirestoreError, OperationType } from '@/lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { toast } from 'sonner';
+import { useLanguage } from '@/lib/languageStore';
 
 export default function CropAnalysis() {
+  const { t } = useLanguage();
   const [image, setImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -132,8 +134,8 @@ export default function CropAnalysis() {
         {/* Left: Upload Zone */}
         <div className="space-y-8">
           <div>
-            <h1 className="text-4xl font-bold text-white mb-4 tracking-tight">Crop Diagnosis AI</h1>
-            <p className="text-zinc-400">Upload a photo of your crop to detect diseases and get instant treatment recommendations.</p>
+            <h1 className="text-4xl font-bold text-white mb-4 tracking-tight">{t('crop.title')}</h1>
+            <p className="text-zinc-400">{t('crop.desc')}</p>
           </div>
 
           <div 
@@ -149,7 +151,7 @@ export default function CropAnalysis() {
                   <img src={image} className="w-full h-full object-cover rounded-3xl" alt="Preview" />
                   <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button variant="outline" size="sm" onClick={() => setImage(null)} className="bg-white/10 backdrop-blur-md border-white/20 text-white">
-                      <Trash2 className="w-4 h-4 mr-2" /> Replace Photo
+                      <Trash2 className="w-4 h-4 mr-2" /> {t('crop.replacePhoto')}
                     </Button>
                   </div>
                 </div>
@@ -159,9 +161,9 @@ export default function CropAnalysis() {
                     <Upload className="w-8 h-8" />
                   </div>
                   <h3 className="text-white font-bold text-lg mb-2">
-                    {isDragging ? 'Drop to upload' : 'Drag and drop photo here'}
+                    {isDragging ? t('crop.dropText') : t('crop.dragText')}
                   </h3>
-                  <p className="text-zinc-500 text-sm mb-8">Works for corn, wheat, rice, tomatoes, and more. JPEG/PNG up to 10MB.</p>
+                  <p className="text-zinc-500 text-sm mb-8">{t('crop.uploadGuidelines')}</p>
                   
                   <div className="flex flex-wrap justify-center gap-4">
                     <input 
@@ -176,7 +178,7 @@ export default function CropAnalysis() {
                       className="bg-emerald-600 hover:bg-emerald-500 rounded-full px-8"
                       onClick={() => fileInputRef.current?.click()}
                     >
-                      Select Image
+                      {t('crop.selectImage')}
                     </Button>
                     <Button 
                       variant="outline" 
@@ -184,7 +186,7 @@ export default function CropAnalysis() {
                       onClick={startCamera}
                     >
                       <Camera className="w-4 h-4" />
-                      Instant Photo
+                      {t('crop.instantPhoto')}
                     </Button>
                   </div>
                 </>
@@ -201,12 +203,12 @@ export default function CropAnalysis() {
             {isAnalyzing ? (
               <span className="flex items-center gap-3">
                 <RefreshCw className="w-6 h-6 animate-spin" />
-                Scanning Neural Network...
+                {t('crop.scanningNeural')}
               </span>
             ) : (
               <span className="flex items-center gap-3">
                 <Search className="w-6 h-6" />
-                Analyze Health
+                {t('crop.analyzeHealth')}
               </span>
             )}
           </Button>
@@ -229,17 +231,17 @@ export default function CropAnalysis() {
                         <CheckCircle2 className="text-white w-6 h-6" />
                       </div>
                       <div>
-                        <CardTitle className="text-white text-xl">Diagnosis Complete</CardTitle>
-                        <CardDescription className="text-emerald-500/70 font-medium italic">{(result.confidence * 100).toFixed(1)}% Confidence Score</CardDescription>
+                        <CardTitle className="text-white text-xl">{t('crop.diagnosisComplete')}</CardTitle>
+                        <CardDescription className="text-emerald-500/70 font-medium italic">{(result.confidence * 100).toFixed(1)}% {t('crop.confidenceScore')}</CardDescription>
                       </div>
                     </div>
                     <Badge variant="outline" className={`
                       px-4 py-1 rounded-full uppercase tracking-tighter font-black
                       ${result.severity === 'high' ? 'bg-orange-500/20 text-orange-500 border-orange-500/30' : 
                         result.severity === 'medium' ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30' : 
-                        'bg-emerald-500/20 text-emerald-500 border-emerald-500/30'}
+                        'bg-emerald-500/20 text-emerald-500 border-emerald-500/20'}
                     `}>
-                      {result.severity} Risk
+                      {result.severity} {t('crop.risk')}
                     </Badge>
                   </div>
                   <CardContent className="p-8 space-y-8">
@@ -264,14 +266,14 @@ export default function CropAnalysis() {
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 text-white">
                         <AlertTriangle className="w-4 h-4 text-orange-500" />
-                        <h4 className="text-sm font-bold uppercase tracking-widest">Treatment Protocol</h4>
+                        <h4 className="text-sm font-bold uppercase tracking-widest">{t('crop.treatmentProtocol')}</h4>
                       </div>
                       
                       <div className="space-y-4">
                         <div className="bg-emerald-500/5 rounded-2xl p-5 border border-emerald-500/10 transition-all hover:bg-emerald-500/10">
                           <div className="flex items-center gap-2 mb-2">
                             <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-                            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Immediate Action</span>
+                            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">{t('crop.immediateAction')}</span>
                           </div>
                           <p className="text-zinc-300 text-sm leading-relaxed">{result.solution.immediate}</p>
                         </div>
@@ -279,7 +281,7 @@ export default function CropAnalysis() {
                         <div className="bg-blue-500/5 rounded-2xl p-5 border border-blue-500/10 transition-all hover:bg-blue-500/10">
                           <div className="flex items-center gap-2 mb-2">
                             <Info className="w-3 h-3 text-blue-400" />
-                            <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Long-term Prevention</span>
+                            <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">{t('crop.longTermPrevention')}</span>
                           </div>
                           <p className="text-zinc-300 text-sm leading-relaxed">{result.solution.longTerm}</p>
                         </div>
@@ -287,7 +289,7 @@ export default function CropAnalysis() {
                     </div>
 
                     <Button className="w-full bg-white text-black hover:bg-zinc-200 rounded-full py-6 font-bold group">
-                      Order Recovery Kit
+                      {t('crop.orderKit')}
                       <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </CardContent>
@@ -300,12 +302,12 @@ export default function CropAnalysis() {
                 animate={{ opacity: 1 }}
                 className="h-full flex flex-col justify-center items-center text-center p-12 border-2 border-dashed border-white/5 rounded-[40px] bg-zinc-950/50"
               >
-                <div className="w-20 h-20 bg-zinc-900 rounded-[28px] flex items-center justify-center mb-8 rotate-3 shadow-2xl">
-                  <Leaf className="w-10 h-10 text-zinc-700" />
+                <div className="w-24 h-24 rounded-[32px] overflow-hidden mb-8 rotate-3 shadow-2xl opacity-50 grayscale hover:grayscale-0 hover:opacity-100 transition-all">
+                  <img src="/src/assets/images/kisansathi_logo_1779010672779.png" alt="Logo Placeholder" className="w-full h-full object-cover" />
                 </div>
-                <h3 className="text-zinc-500 font-bold text-xl mb-4 italic">Neural Engine Standby</h3>
+                <h3 className="text-zinc-500 font-bold text-xl mb-4 italic">{t('crop.standbyTitle')}</h3>
                 <p className="text-zinc-600 text-sm max-w-xs">
-                  Your analysis results will appear here after scanning. Our AI handles over 40+ species of crops.
+                  {t('crop.standbyDesc')}
                 </p>
               </motion.div>
             )}

@@ -1,178 +1,237 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ShoppingCart, Search, Filter, ArrowUpRight, TrendingUp, ShieldCheck, User, Leaf, Droplets } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { 
+  ShoppingBag, 
+  Plus, 
+  Search, 
+  MapPin, 
+  Tag, 
+  User, 
+  Phone,
+  Trash2,
+  X,
+  PlusCircle,
+  TrendingUp,
+  Store,
+  Layers,
+  Wheat,
+  Clock,
+  Package,
+  Box
+} from 'lucide-react';
+import { 
+  collection, 
+  query, 
+  onSnapshot, 
+  orderBy, 
+  addDoc, 
+  serverTimestamp, 
+  deleteDoc, 
+  doc, 
+  where 
+} from 'firebase/firestore';
+import { db, auth, handleFirestoreError, OperationType } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { Link } from 'react-router-dom';
 import { useLanguage } from '@/lib/languageStore';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
-const products = [
-  { id: 1, name: 'Premium Organic Wheat', category: 'Produce', price: 42, unit: 'Bushel', stock: 120, farmer: 'Green Valley Farms', image: 'https://picsum.photos/seed/wheat/400/300' },
-  { id: 2, name: 'Nitrogen-Max Fertilizer', category: 'Fertilizers', price: 65, unit: '50kg Bag', stock: 100, farmer: 'AgroBoost Co.', image: 'https://image-placeholder.ais.studio/api/generate-image?prompt=bag+of+premium+nitrogen+fertilizer+agricultural+laboratory+setting+cinematic+lighting' },
-  { id: 3, name: 'Precision Irrigation Sensors', category: 'Technology', price: 156, unit: 'Unit', stock: 12, farmer: 'ShieldTech', image: 'https://picsum.photos/seed/sensor/400/300' },
-  { id: 4, name: 'Heirloom Tomato Seeds', category: 'Seeds', price: 12, unit: 'Packet', stock: 200, farmer: 'Heritage Seeds', image: 'https://picsum.photos/seed/seeds/400/300' },
-  { id: 5, name: 'Solar Water Pump', category: 'Tools', price: 449, unit: 'Full Kit', stock: 5, farmer: 'EcoVibe Energy', image: 'https://picsum.photos/seed/pump/400/300' },
-  { id: 6, name: 'Smart Pest Repellent', category: 'Technology', price: 85, unit: 'Device', stock: 20, farmer: 'GuardNature', image: 'https://picsum.photos/seed/repel/400/300' },
-  { id: 7, name: 'Eco-Glow Organic Fertilizer', category: 'Fertilizers', price: 38, unit: '25kg bag', stock: 60, farmer: 'EarthFirst', image: 'https://image-placeholder.ais.studio/api/generate-image?prompt=organic+compost+fertilizer+pack+close+up+garden+background' },
-  { id: 8, name: 'Bio-Liquid Nutrients', category: 'Fertilizers', price: 120, unit: '5L Gallon', stock: 30, farmer: 'AgroBoost Co.', image: 'https://image-placeholder.ais.studio/api/generate-image?prompt=liquid+fertilizer+bottle+in+a+greenhouse+macro+photography' },
-  { id: 9, name: 'Fuji Apples (Organic)', category: 'Produce', price: 5, unit: 'kg', stock: 500, farmer: 'Applewood Orchards', image: 'https://image-placeholder.ais.studio/api/generate-image?prompt=crate+of+fresh+fuji+apples+soft+morning+light' },
-  { id: 10, name: 'Sweet Corn Baskets', category: 'Produce', price: 15, unit: 'Basket', stock: 85, farmer: 'Sunny Fields', image: 'https://image-placeholder.ais.studio/api/generate-image?prompt=stack+of+organic+sweet+corn+ears' },
-  { id: 11, name: 'Hybrid Sunflower Seeds', category: 'Seeds', price: 18, unit: 'Packet', stock: 150, farmer: 'BioGenics', image: 'https://image-placeholder.ais.studio/api/generate-image?prompt=sunflower+seeds+in+a+wooden+bowl' },
-  { id: 12, name: 'Autonomous HarvestBot', category: 'Tools', price: 2999, unit: 'Unit', stock: 2, farmer: 'RoboFarm', image: 'https://image-placeholder.ais.studio/api/generate-image?prompt=autonomous+farming+robot+in+a+futuristic+field' },
-  { id: 13, name: 'Honey Gold Potatoes', category: 'Produce', price: 8, unit: '5kg', stock: 300, farmer: 'Root Valley', image: 'https://image-placeholder.ais.studio/api/generate-image?prompt=crate+of+golden+potatoes+on+rustic+table' },
-  { id: 14, name: 'Weather Station Pro', category: 'Technology', price: 850, unit: 'Unit', stock: 10, farmer: 'ShieldTech', image: 'https://image-placeholder.ais.studio/api/generate-image?prompt=advanced+weather+station+in+a+windy+field+futuristic+design' },
-  { id: 15, name: 'Ancient Grain Sampler', category: 'Seeds', price: 45, unit: 'Assortment', stock: 40, farmer: 'Heritage Seeds', image: 'https://image-placeholder.ais.studio/api/generate-image?prompt=selection+of+ancient+grains+in+small+hemp+bags' },
-  { id: 16, name: 'Hydroponic Tower', category: 'Tools', price: 720, unit: 'Unit', stock: 8, farmer: 'EcoVibe Energy', image: 'https://image-placeholder.ais.studio/api/generate-image?prompt=vertical+hydroponic+tower+glowing+with+leds' },
-  { id: 17, name: 'Satellite Soil Analyzer', category: 'Technology', price: 1200, unit: 'Annual License', stock: 100, farmer: 'OrbitalAg', image: 'https://image-placeholder.ais.studio/api/generate-image?prompt=satellite+view+of+crop+fields+with+digital+overlay+data' },
-  { id: 18, name: 'Organic Blueberries', category: 'Produce', price: 12, unit: 'box', stock: 120, farmer: 'Applewood Orchards', image: 'https://image-placeholder.ais.studio/api/generate-image?prompt=fresh+blueberries+with+water+droplets+macro+shot' },
-];
+interface ProductListing {
+  id: string;
+  farmerId: string;
+  name: string;
+  category: string;
+  price: number;
+  unit: string;
+  description: string;
+  imageUrl?: string;
+  stock: number;
+  location?: string;
+  contact?: string;
+  createdAt: any;
+}
 
-export default function Marketplace() {
+const Marketplace: React.FC = () => {
   const { t } = useLanguage();
-  const [category, setCategory] = useState('All');
-  const [search, setSearch] = useState('');
+  const [products, setProducts] = useState<ProductListing[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [user, setUser] = useState<any>(null);
 
-  const filteredProducts = products.filter(p => 
-    (category === 'All' || p.category === category) &&
-    (p.name.toLowerCase().includes(search.toLowerCase()) || 
-     p.farmer.toLowerCase().includes(search.toLowerCase()))
-  );
+  useEffect(() => {
+    const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const items = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as ProductListing[];
+      setProducts(items);
+    }, (err) => {
+      handleFirestoreError(err, OperationType.GET, 'products');
+    });
+
+    const authUnsubscribe = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+    });
+
+    return () => {
+      unsubscribe();
+      authUnsubscribe();
+    };
+  }, []);
+
+  const filteredProducts = products.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         p.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
-    <div className="min-h-screen bg-black pt-24 pb-20 px-4">
-      <div className="max-w-7xl mx-auto space-y-12">
-        {/* Market Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-           <Card className="bg-zinc-900 border-white/5 p-6 border-b-2 border-b-emerald-500/50">
-             <div className="flex justify-between items-center mb-4">
-               <div className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">{t('market.stats1Label')}</div>
-               <TrendingUp className="w-4 h-4 text-emerald-500" />
-             </div>
-             <div className="text-4xl font-black text-white">$1,424.20</div>
-             <p className="text-emerald-500 text-xs font-bold mt-1">+2.4% vs last week</p>
-           </Card>
-           <Card className="bg-zinc-900 border-white/5 p-6 border-b-2 border-b-blue-500/50">
-             <div className="flex justify-between items-center mb-4">
-               <div className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">{t('market.stats2Label')}</div>
-               <ShieldCheck className="w-4 h-4 text-blue-500" />
-             </div>
-             <div className="text-4xl font-black text-white">4.2K+</div>
-             <p className="text-blue-400 text-xs font-bold mt-1">128 new this month</p>
-           </Card>
-           <Card className="bg-zinc-900 border-white/5 p-6 border-b-2 border-b-orange-500/50">
-             <div className="flex justify-between items-center mb-4">
-               <div className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">{t('market.stats3Label')}</div>
-               <ShoppingCart className="w-4 h-4 text-orange-500" />
-             </div>
-             <div className="text-4xl font-black text-white">$12.5M</div>
-             <p className="text-orange-400 text-xs font-bold mt-1">Direct fair-trade impact</p>
-           </Card>
-        </div>
+    <div className="min-h-screen bg-black text-white p-6 md:p-10 lg:p-12">
+      <div className="max-w-7xl mx-auto space-y-10 pt-16">
+        
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-emerald-500 font-black uppercase tracking-[0.3em] text-[10px]">
+              <Store className="w-4 h-4" />
+              <span>{t('market.tag')}</span>
+            </div>
+            <h1 className="text-5xl md:text-6xl font-black tracking-tighter leading-none italic uppercase">
+              {t('market.title').split(' ')[0]} <span className="text-emerald-500">{t('market.title').split(' ')[1] || ''}</span>
+            </h1>
+            <p className="text-zinc-500 max-w-md text-sm font-medium leading-relaxed italic">
+              {t('market.desc')}
+            </p>
+          </div>
 
-        {/* Filter Bar */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6 bg-zinc-900/50 p-4 rounded-[32px] border border-white/5 backdrop-blur-xl">
-           <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
-              {['All', 'Produce', 'Technology', 'Seeds', 'Tools', 'Fertilizers'].map(c => (
-                <button 
-                  key={c}
-                  onClick={() => setCategory(c)}
-                  className={`px-6 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${category === c ? 'bg-white text-black' : 'bg-white/5 text-zinc-500 hover:text-white'}`}
-                >
-                  {t(`market.cat.${c}`)}
-                </button>
-              ))}
-           </div>
-           <div className="relative w-full md:w-96">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-              <Input 
-                 placeholder={t('market.searchPlaceholder')} 
-                 className="bg-black/40 border-white/10 pl-12 h-12 rounded-2xl text-white focus:border-emerald-500/50" 
-                 value={search}
-                 onChange={(e) => setSearch(e.target.value)}
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
+            <div className="relative group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-hover:text-emerald-500 transition-colors" />
+              <input 
+                type="text" 
+                placeholder={t('market.searchPlaceholder')}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-zinc-900 border border-white/5 rounded-2xl py-4 pl-12 pr-6 text-sm focus:outline-none focus:border-emerald-500/50 w-full md:w-64 transition-all font-bold"
               />
-           </div>
+            </div>
+            <Link to="/sell" className="flex-shrink-0">
+              <Button className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl px-8 font-black uppercase italic tracking-wider h-14">
+                <Plus className="w-5 h-5 mr-3" /> {t('market.startListing')}
+              </Button>
+            </Link>
+          </div>
         </div>
 
-        {/* Product Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-           {filteredProducts.map((product, i) => (
-             <motion.div
-               key={product.id}
-               initial={{ opacity: 0, y: 20 }}
-               whileInView={{ opacity: 1, y: 0 }}
-               transition={{ delay: i * 0.05 }}
-               viewport={{ once: true }}
+        {/* Category Filter */}
+        <div className="flex flex-wrap gap-2 pb-4">
+           {['All', 'Crop', 'Seed', 'Fertilizer', 'Tool'].map(cat => (
+             <button
+               key={cat}
+               onClick={() => setSelectedCategory(cat)}
+               className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all border ${
+                 selectedCategory === cat 
+                  ? 'bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.1)]' 
+                  : 'bg-zinc-900 border-white/5 text-zinc-500 hover:border-white/10 hover:text-zinc-300'
+               }`}
              >
-               <Card className="bg-zinc-900 border-white/5 overflow-hidden group hover:border-white/20 transition-all rounded-[32px] flex flex-col h-full">
-                  <div className="aspect-[4/3] overflow-hidden relative">
-                     <img 
-                       src={product.image} 
-                       alt={product.name} 
-                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-                       referrerPolicy="no-referrer"
-                     />
-                     <div className="absolute top-4 left-4">
-                        <Badge className="bg-emerald-500/80 backdrop-blur-md border-none text-white font-bold">{t('common.verified')}</Badge>
-                     </div>
-                     <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent"></div>
-                  </div>
-                  <CardContent className="p-8 space-y-6 flex-1 flex flex-col justify-between">
-                     <div className="space-y-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="text-xl font-bold text-white mb-1">{product.name}</h3>
-                            <div className="flex items-center gap-2 text-zinc-500 text-xs">
-                              <User className="w-3 h-3" /> {product.farmer}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                             <div className="text-2xl font-black text-emerald-400">${product.price}</div>
-                             <div className="text-[10px] uppercase font-black tracking-widest text-zinc-600">Per {product.unit}</div>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                           <div className="p-3 bg-white/5 rounded-xl flex items-center gap-3">
-                              <Leaf className="w-4 h-4 text-emerald-500" />
-                              <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{t('common.organic')}</div>
-                           </div>
-                           <div className="p-3 bg-white/5 rounded-xl flex items-center gap-3">
-                              <Droplets className="w-4 h-4 text-blue-500" />
-                              <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{t('common.sustainable')}</div>
-                           </div>
-                        </div>
-                     </div>
-
-                     <div className="pt-6 border-t border-white/5 flex gap-3">
-                        <Button className="flex-1 bg-white text-black hover:bg-zinc-200 rounded-full font-bold h-12">
-                          {t('market.btnAddToCart')}
-                        </Button>
-                        <Button variant="outline" className="bg-transparent border-white/10 text-white rounded-full h-12 px-8 group">
-                          {t('market.btnDetails')}
-                          <ArrowUpRight className="ml-2 w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                        </Button>
-                     </div>
-                  </CardContent>
-               </Card>
-             </motion.div>
+               {t(`market.cat.${cat}`)}
+             </button>
            ))}
         </div>
 
-        {/* Bulk Order Banner */}
-        <div className="bg-emerald-600 rounded-[40px] p-12 relative overflow-hidden group">
-           <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,#ffffff20_0%,transparent_60%)]"></div>
-           <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
-              <div className="max-w-xl text-center md:text-left">
-                 <h2 className="text-4xl font-black text-black mb-4 tracking-tighter">{t('market.bulkTitle')}</h2>
-                 <p className="text-black/70 font-medium italic">{t('market.bulkDesc')}</p>
+        {/* Listings Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredProducts.map((p, idx) => (
+            <motion.div
+              layout
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: idx * 0.05 }}
+              key={p.id}
+              className="bg-zinc-900 border border-white/5 rounded-[3rem] p-8 hover:border-emerald-500/30 transition-all group flex flex-col h-full overflow-hidden relative"
+            >
+              <div className="absolute top-0 right-0 p-6 z-20">
+                <Badge className="bg-white/5 text-zinc-500 border-white/5 py-1.5 px-4 text-[9px] uppercase tracking-[0.2em] font-black">
+                  {p.category}
+                </Badge>
               </div>
-              <Button size="lg" className="bg-black text-white hover:bg-zinc-900 rounded-full px-12 py-8 text-xl font-bold shadow-2xl group transition-all hover:scale-105">
-                 {t('market.btnQuote')}
-              </Button>
-           </div>
+
+              <div className="flex justify-between items-start mb-8 z-10">
+                <div className="p-5 bg-emerald-500/10 rounded-[2rem] border border-emerald-500/20">
+                  {p.category === 'Crop' ? <Wheat className="w-10 h-10 text-emerald-500" /> :
+                   p.category === 'Seed' ? <Package className="w-10 h-10 text-blue-400" /> :
+                   p.category === 'Fertilizer' ? <TrendingUp className="w-10 h-10 text-indigo-400" /> :
+                   <Box className="w-10 h-10 text-zinc-400" />}
+                </div>
+              </div>
+
+              <div className="space-y-6 flex-grow z-10">
+                <div className="flex justify-between items-end">
+                   <div>
+                     <h3 className="text-3xl font-black uppercase tracking-tight italic group-hover:text-emerald-500 transition-colors leading-[0.9]">{p.name}</h3>
+                     <div className="flex items-center gap-1.5 text-zinc-600 text-[10px] font-black uppercase tracking-widest mt-3">
+                       <MapPin className="w-3 h-3 text-emerald-500" />
+                       {p.location || 'Distributed Node'}
+                     </div>
+                   </div>
+                </div>
+
+                <div className="p-6 bg-black/50 rounded-3xl space-y-4 border border-white/5">
+                   <p className="text-zinc-500 text-sm italic leading-relaxed line-clamp-3">
+                     "{p.description || 'Secure communication link established. No specific metadata found for this resource.'}"
+                   </p>
+                   
+                   <div className="flex items-center justify-between pt-4 mt-4 border-t border-white/10">
+                      <div>
+                        <div className="text-[9px] text-zinc-600 font-black uppercase tracking-widest mb-1 leading-none">{t('common.valuation')}</div>
+                        <div className="text-2xl font-black text-emerald-400">₹{p.price}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-[9px] text-zinc-600 font-black uppercase tracking-widest mb-1 leading-none">{t('common.inStock')}</div>
+                        <div className="text-2xl font-black text-zinc-400">{p.stock} <span className="text-[10px] uppercase font-bold text-zinc-700">{p.unit}s</span></div>
+                      </div>
+                   </div>
+                </div>
+              </div>
+
+              <div className="mt-8 pt-4 z-10">
+                <a 
+                  href={`mailto:${p.contact}`}
+                  className="w-full flex items-center justify-center gap-3 bg-white text-black hover:bg-emerald-500 hover:text-white transition-all rounded-2xl h-14 font-black uppercase tracking-[0.1em] text-sm italic"
+                >
+                  <Phone className="w-4 h-4" /> {t('market.initiateTrade')}
+                </a>
+              </div>
+            </motion.div>
+          ))}
         </div>
+
+        {filteredProducts.length === 0 && (
+          <div className="py-40 text-center space-y-4">
+            <div className="bg-zinc-900 w-32 h-32 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 opacity-50 border border-white/5">
+              <Search className="w-10 h-10 text-zinc-700" />
+            </div>
+            <h3 className="text-3xl font-black uppercase text-zinc-800 italic tracking-tighter">{t('market.notFound')}</h3>
+            <p className="text-zinc-700 text-sm font-black uppercase tracking-[0.3em]">{t('market.broadcasting')}</p>
+          </div>
+        )}
       </div>
     </div>
   );
-}
+};
+
+export default Marketplace;

@@ -50,14 +50,17 @@
       "properties": {
         "farmerId": { "type": "string" },
         "name": { "type": "string" },
+        "category": { "type": "string", "enum": ["Crop", "Seed", "Fertilizer", "Tool"] },
         "price": { "type": "number" },
         "unit": { "type": "string" },
         "description": { "type": "string" },
         "imageUrl": { "type": "string" },
         "stock": { "type": "number" },
+        "location": { "type": "string" },
+        "contact": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["farmerId", "name", "price", "stock"]
+      "required": ["farmerId", "name", "category", "price", "stock"]
     },
     "Alert": {
       "title": "System Alert",
@@ -83,6 +86,19 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "category", "message", "createdAt"]
+    },
+    "Task": {
+      "title": "User Task",
+      "description": "Personal task for the dashboard",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "priority": { "type": "string", "enum": ["Low", "Medium", "High"] },
+        "completed": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "priority", "completed", "createdAt"]
     }
   },
   "firestore": {
@@ -109,6 +125,10 @@
     "/feedback/{feedbackId}": {
       "schema": "Feedback",
       "description": "User feedback submissions"
+    },
+    "/tasks/{taskId}": {
+      "schema": "Task",
+      "description": "User specific tasks"
     }
   }
 }

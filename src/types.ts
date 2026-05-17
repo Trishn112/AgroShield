@@ -43,3 +43,8 @@ export interface Product {
   stock: number;
   createdAt: string;
 }
+
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
