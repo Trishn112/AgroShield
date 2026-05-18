@@ -2,13 +2,13 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import OpenAI from "openai";
+import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || "",
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY || "",
 });
 
 async function startServer() {
@@ -38,7 +38,7 @@ async function startServer() {
   }));
 
   // =========================
-  // REQUEST LOGGER
+  // LOGGER
   // =========================
 
   app.use((req, res, next) => {
@@ -51,7 +51,9 @@ async function startServer() {
   // =========================
 
   const stripe = process.env.STRIPE_SECRET_KEY
-    ? new (require("stripe"))(process.env.STRIPE_SECRET_KEY)
+    ? new (require("stripe"))(
+        process.env.STRIPE_SECRET_KEY
+      )
     : null;
 
   // =========================
@@ -73,7 +75,8 @@ async function startServer() {
 
     if (
       cached &&
-      Date.now() - cached.timestamp < CACHE_TTL
+      Date.now() - cached.timestamp <
+        CACHE_TTL
     ) {
       console.log(`Cache hit: ${key}`);
       return cached.data;
@@ -92,7 +95,8 @@ async function startServer() {
     });
 
     if (aiCache.size > 500) {
-      const firstKey = aiCache.keys().next().value;
+      const firstKey =
+        aiCache.keys().next().value;
 
       if (firstKey) {
         aiCache.delete(firstKey);
@@ -101,12 +105,12 @@ async function startServer() {
   };
 
   // =========================
-  // RATE LIMITER
+  // SIMPLE RATE LIMIT
   // =========================
 
   let lastRequestTime = 0;
 
-  const MIN_REQUEST_INTERVAL = 2000;
+  const MIN_REQUEST_INTERVAL = 3000;
 
   const waitIfBusy = async () => {
     const now = Date.now();
@@ -118,7 +122,7 @@ async function startServer() {
         MIN_REQUEST_INTERVAL - diff;
 
       console.log(
-        `Rate limit delay: ${delay}ms`
+        `Rate limiting ${delay}ms`
       );
 
       await new Promise(resolve =>
@@ -147,9 +151,8 @@ async function startServer() {
     res.json({
       nodeEnv: process.env.NODE_ENV,
       isProd,
-      cwd: process.cwd(),
-      hasOpenAIKey:
-        !!process.env.OPENAI_API_KEY,
+      hasGeminiKey:
+        !!process.env.GEMINI_API_KEY,
       hasStripeKey:
         !!process.env.STRIPE_SECRET_KEY,
     });
@@ -173,13 +176,15 @@ async function startServer() {
         if (!stripe) {
           return res.status(500).json({
             error:
-              "Stripe is not configured on server",
+              "Stripe is not configured",
           });
         }
 
         const session =
           await stripe.checkout.sessions.create({
-            payment_method_types: ["card"],
+            payment_method_types: [
+              "card",
+            ],
 
             line_items: [
               {
@@ -224,7 +229,7 @@ async function startServer() {
         res.status(500).json({
           error:
             error.message ||
-            "Stripe session failed",
+            "Stripe error",
         });
       }
     }
@@ -242,7 +247,8 @@ async function startServer() {
 
         if (!crop) {
           return res.status(400).json({
-            error: "Crop is required",
+            error:
+              "Crop name is required",
           });
         }
 
@@ -259,37 +265,33 @@ async function startServer() {
         await waitIfBusy();
 
         const response =
-          await openai.chat.completions.create({
-            model: "gpt-4o-mini",
+          await ai.models.generateContent({
+            model: "gemini-2.0-flash",
 
-            messages: [
-              {
-                role: "system",
+            contents:
+              `Provide agricultural optimization parameters for crop "${crop}" in valid JSON format with:
+name,
+moisture,
+temp,
+cloud,
+wind,
+description`,
 
-                content:
-                  "You are an agriculture expert. Return crop optimization data in JSON format.",
-              },
-
-              {
-                role: "user",
-
-                content:
-                  `Provide irrigation parameters for crop: ${crop}`,
-              },
-            ],
-
-            response_format: {
-              type: "json_object",
+            config: {
+              responseMimeType:
+                "application/json",
             },
           });
 
-        const content =
-          response.choices[0].message.content ||
-          "{}";
+        const text =
+          response.text || "{}";
 
-        const data = JSON.parse(content);
+        const data = JSON.parse(text);
 
-        setCachedResponse(cacheKey, data);
+        setCachedResponse(
+          cacheKey,
+          data
+        );
 
         res.json(data);
 
@@ -298,13 +300,6 @@ async function startServer() {
           "Irrigation AI Error:",
           error
         );
-
-        if (error.status === 429) {
-          return res.status(429).json({
-            error:
-              "AI engine busy. Please wait.",
-          });
-        }
 
         res.status(500).json({
           error:
@@ -327,81 +322,113 @@ async function startServer() {
 
         if (!image) {
           return res.status(400).json({
-            error: "Image is required",
+            error:
+              "Image is required",
           });
         }
 
         await waitIfBusy();
 
         const response =
-          await openai.chat.completions.create({
-            model: "gpt-4o-mini",
+          await ai.models.generateContent({
+            model: "gemini-2.0-flash",
 
-            messages: [
+            contents: [
               {
-                role: "system",
-
-                content:
-                  `Analyze crop disease images and return valid JSON with:
-disease,
-pathogenType,
-severity,
-symptoms,
-causes,
-solution {
- immediate,
- longTerm
-},
-confidence`,
+                text:
+                  "Analyze this crop image for disease and return valid JSON.",
               },
 
               {
-                role: "user",
-
-                content: [
-                  {
-                    type: "text",
-
-                    text:
-                      "Analyze this crop image",
-                  },
-
-                  {
-                    type: "image_url",
-
-                    image_url: {
-                      url: image.startsWith("data:")
-                        ? image
-                        : `data:image/jpeg;base64,${image}`,
-                    },
-                  },
-                ],
+                inlineData: {
+                  data:
+                    image.split(",")[1],
+                  mimeType:
+                    "image/jpeg",
+                },
               },
             ],
 
-            response_format: {
-              type: "json_object",
+            config: {
+              responseMimeType:
+                "application/json",
+
+              responseSchema: {
+                type: Type.OBJECT,
+
+                properties: {
+                  disease: {
+                    type: Type.STRING,
+                  },
+
+                  pathogenType: {
+                    type: Type.STRING,
+                  },
+
+                  severity: {
+                    type: Type.STRING,
+                    enum: [
+                      "low",
+                      "medium",
+                      "high",
+                    ],
+                  },
+
+                  symptoms: {
+                    type: Type.STRING,
+                  },
+
+                  causes: {
+                    type: Type.STRING,
+                  },
+
+                  solution: {
+                    type: Type.OBJECT,
+
+                    properties: {
+                      immediate: {
+                        type: Type.STRING,
+                      },
+
+                      longTerm: {
+                        type: Type.STRING,
+                      },
+                    },
+
+                    required: [
+                      "immediate",
+                      "longTerm",
+                    ],
+                  },
+
+                  confidence: {
+                    type: Type.NUMBER,
+                  },
+                },
+
+                required: [
+                  "disease",
+                  "pathogenType",
+                  "severity",
+                  "symptoms",
+                  "causes",
+                  "solution",
+                  "confidence",
+                ],
+              },
             },
           });
 
-        const content =
-          response.choices[0].message.content ||
-          "{}";
+        const text =
+          response.text || "{}";
 
-        res.json(JSON.parse(content));
+        res.json(JSON.parse(text));
 
       } catch (error: any) {
         console.error(
-          "Crop Analysis Error:",
+          "Analysis Error:",
           error
         );
-
-        if (error.status === 429) {
-          return res.status(429).json({
-            error:
-              "AI engine busy. Please wait.",
-          });
-        }
 
         res.status(500).json({
           error:
@@ -416,106 +443,94 @@ confidence`,
   // AI CHAT
   // =========================
 
-  app.post("/api/chat", async (req, res) => {
-    try {
-      const { messages } = req.body;
+  app.post(
+    "/api/chat",
+    async (req, res) => {
+      try {
+        const { messages } = req.body;
 
-      if (
-        !messages ||
-        !Array.isArray(messages)
-      ) {
-        return res.status(400).json({
-          error:
-            "Messages array is required",
-        });
-      }
-
-      await waitIfBusy();
-
-      const history = messages.map(
-        (m: any) => ({
-          role:
-            m.role === "user"
-              ? "user"
-              : "assistant",
-
-          content: m.content,
-        })
-      );
-
-      const stream =
-        await openai.chat.completions.create({
-          model: "gpt-4o-mini",
-
-          messages: [
-            {
-              role: "system",
-
-              content:
-                "You are an expert AI agriculture consultant for Kisan Sathi.",
-            },
-
-            ...history,
-          ],
-
-          stream: true,
-        });
-
-      res.setHeader(
-        "Content-Type",
-        "text/plain; charset=utf-8"
-      );
-
-      for await (const chunk of stream) {
-        const content =
-          chunk.choices[0]?.delta?.content ||
-          "";
-
-        if (content) {
-          res.write(content);
-        }
-      }
-
-      res.end();
-
-    } catch (error: any) {
-      console.error(
-        "Chat Error:",
-        error
-      );
-
-      if (error.status === 429) {
-        if (!res.headersSent) {
-          return res.status(429).json({
+        if (
+          !messages ||
+          !Array.isArray(messages)
+        ) {
+          return res.status(400).json({
             error:
-              "AI limit reached. Please wait.",
+              "Messages array required",
           });
         }
 
-        res.write(
-          "\n[System: AI limit reached. Please wait.]"
+        await waitIfBusy();
+
+        const history = messages
+          .slice(0, -1)
+          .map((m: any) => ({
+            role:
+              m.role === "user"
+                ? "user"
+                : "model",
+
+            parts: [
+              {
+                text: m.content,
+              },
+            ],
+          }));
+
+        const lastMessage =
+          messages[messages.length - 1]
+            .content;
+
+        const chat =
+          ai.chats.create({
+            model:
+              "gemini-2.0-flash",
+
+            config: {
+              systemInstruction:
+                "You are an expert AI agriculture consultant for Kisan Sathi.",
+            },
+
+            history,
+          });
+
+        const result =
+          await chat.sendMessageStream({
+            message: lastMessage,
+          });
+
+        res.setHeader(
+          "Content-Type",
+          "text/plain; charset=utf-8"
         );
 
-        return res.end();
-      }
+        for await (const chunk of result) {
+          if (chunk.text) {
+            res.write(chunk.text);
+          }
+        }
 
-      res.status(500).json({
-        error:
-          error.message ||
-          "Internal server error",
-      });
+        res.end();
+
+      } catch (error: any) {
+        console.error(
+          "Chat Error:",
+          error
+        );
+
+        res.status(500).json({
+          error:
+            error.message ||
+            "Chat failed",
+        });
+      }
     }
-  });
+  );
 
   // =========================
   // DEV MODE
   // =========================
 
   if (!isProd) {
-    console.log(
-      "Using Vite middleware"
-    );
-
     try {
       const vite =
         await createViteServer({
@@ -530,7 +545,7 @@ confidence`,
 
     } catch (e) {
       console.error(
-        "Vite Middleware Error:",
+        "Vite Error:",
         e
       );
     }
@@ -582,7 +597,7 @@ confidence`,
   });
 }
 
-startServer().catch((err) => {
+startServer().catch(err => {
   console.error(
     "Server startup failed:",
     err
