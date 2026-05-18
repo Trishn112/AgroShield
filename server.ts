@@ -266,7 +266,7 @@ async function startServer() {
 
         const response =
           await ai.models.generateContent({
-            model: "gemini-2.0-flash",
+            model: "gemini-2.5-flash",
 
             contents:
               `Provide agricultural optimization parameters for crop "${crop}" in valid JSON format with:
@@ -331,7 +331,7 @@ description`,
 
         const response =
           await ai.models.generateContent({
-            model: "gemini-2.0-flash",
+            model: "gemini-2.5-flash",
 
             contents: [
               {
@@ -483,7 +483,7 @@ description`,
         const chat =
           ai.chats.create({
             model:
-              "gemini-2.0-flash",
+              "gemini-2.5-flash",
 
             config: {
               systemInstruction:
